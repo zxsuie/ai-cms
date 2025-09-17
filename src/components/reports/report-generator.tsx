@@ -6,9 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { generateReportAction } from "@/app/(app)/reports/actions";
 import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { ReportDisplay } from "./report-display";
-import { Loader2 } from "lucide-radix";
+import { Loader2, Terminal } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { Terminal } from "lucide-react";
 
 type ReportType = 'weekly' | 'monthly';
 
