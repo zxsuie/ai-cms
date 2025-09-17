@@ -5,10 +5,14 @@ import { Button } from "../ui/button";
 
 interface ReportDisplayProps {
   report: GenerateAiReportOutput;
-  type: 'weekly' | 'monthly';
+  type: 'weekly' | 'monthly' | null;
 }
 
 export function ReportDisplay({ report, type }: ReportDisplayProps) {
+  if (!type) {
+    return null;
+  }
+  
   return (
     <Card className="animate-in fade-in-50 duration-500">
       <CardHeader>
