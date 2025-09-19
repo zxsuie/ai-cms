@@ -8,6 +8,7 @@ export function Header() {
     '/dashboard': 'Dashboard',
     '/inventory': 'Medicine Inventory',
     '/reports': 'AI Reports',
+    '/appointments': 'Appointment Scheduling',
   };
   const title = pageTitles[pathname] ?? 'ClinicFlow';
   

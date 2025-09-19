@@ -1,4 +1,4 @@
-import { StudentVisit, Medicine, RefillRequest } from '@/lib/types';
+import { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 // In-memory store
@@ -33,6 +33,23 @@ let medicines: Medicine[] = [
 ];
 
 let requests: RefillRequest[] = [];
+
+let appointments: Appointment[] = [
+    {
+        id: 'a1',
+        studentName: 'Charlie Brown',
+        studentId: 'S55555',
+        reason: 'Follow-up on allergy medication',
+        dateTime: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+    },
+    {
+        id: 'a2',
+        studentName: 'Lucy van Pelt',
+        studentId: 'S44444',
+        reason: 'Annual health check-up',
+        dateTime: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(),
+    }
+];
 
 // Data access layer
 export const db = {
@@ -86,5 +103,18 @@ export const db = {
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
+  },
+
+  getAppointments: async (): Promise<Appointment[]> => {
+    return Promise.resolve(appointments.sort((a,b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()));
+  },
+
+  addAppointment: async (apptData: Omit<Appointment, 'id'>): Promise<Appointment> => {
+    const newAppt: Appointment = {
+      ...apptData,
+      id: `a${Date.now()}`,
+    };
+    appointments.push(newAppt);
+    return Promise.resolve(newAppt);
   }
 };

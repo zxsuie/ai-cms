@@ -31,3 +31,11 @@ export type RefillRequest = {
   medicineName: string;
   requestDate: string;
 };
+
+export type Appointment = {
+  id: string;
+  studentName: string;
+  studentId: string;
+  reason: string;
+  dateTime: string;
+};

@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { PlusCircle, LayoutDashboard, Boxes, BarChart3 } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Boxes, BarChart3, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -17,6 +17,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/appointments', label: 'Appointments', icon: CalendarDays },
 ];
 
 export function MainSidebar() {
