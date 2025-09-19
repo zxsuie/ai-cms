@@ -3,11 +3,12 @@
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { scheduleAppointment, scheduleAppointmentSchema } from '@/app/(app)/appointments/actions';
+import { scheduleAppointment } from '@/app/(app)/appointments/actions';
+import { scheduleAppointmentSchema } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';

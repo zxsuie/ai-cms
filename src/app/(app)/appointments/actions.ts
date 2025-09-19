@@ -1,16 +1,9 @@
 'use server';
 
-import { z } from 'zod';
+import type { z } from 'zod';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-
-export const scheduleAppointmentSchema = z.object({
-  studentName: z.string().min(1, 'Student name is required'),
-  studentId: z.string().min(1, 'Student ID is required'),
-  reason: z.string().min(1, 'Reason for appointment is required'),
-  date: z.date({ required_error: 'Please select a date.' }),
-  time: z.string().min(1, 'Please select a time.'),
-});
+import type { scheduleAppointmentSchema } from '@/lib/types';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {

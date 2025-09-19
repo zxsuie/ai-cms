@@ -7,6 +7,14 @@ export const logVisitSchema = z.object({
   reason: z.string().min(1, 'Reason for visit is required'),
 });
 
+export const scheduleAppointmentSchema = z.object({
+  studentName: z.string().min(1, 'Student name is required'),
+  studentId: z.string().min(1, 'Student ID is required'),
+  reason: z.string().min(1, 'Reason for appointment is required'),
+  date: z.date({ required_error: 'Please select a date.' }),
+  time: z.string().min(1, 'Please select a time.'),
+});
+
 export type StudentVisit = {
   id: string;
   timestamp: string;
