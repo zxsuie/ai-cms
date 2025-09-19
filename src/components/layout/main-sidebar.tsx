@@ -35,18 +35,16 @@ export function MainSidebar() {
       <SidebarMenu className="flex-1 p-2">
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} passHref>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={{ children: item.label, side: 'right' }}
-              >
-                <div>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </div>
-              </SidebarMenuButton>
-            </Link>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === item.href}
+              tooltip={{ children: item.label, side: 'right' }}
+            >
+              <Link href={item.href}>
+                <item.icon />
+                <span>{item.label}</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
