@@ -1,5 +1,6 @@
 import { AppointmentCalendar } from "@/components/appointments/appointment-calendar";
 import { UpcomingAppointments } from "@/components/appointments/upcoming-appointments";
+import { ScheduleAppointmentForm } from "@/components/appointments/schedule-appointment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +15,16 @@ export default function AppointmentsPage() {
         </p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Schedule New Appointment</CardTitle>
+              <CardDescription>Fill out the form below to add a new appointment.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScheduleAppointmentForm />
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Calendar</CardTitle>
