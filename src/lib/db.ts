@@ -1,5 +1,13 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import type { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
+
+// This file was previously throwing an error because of 'use client'
+// but that has been removed.
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Data access layer using Supabase
 export const db = {
