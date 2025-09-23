@@ -29,7 +29,6 @@ export const db = {
   
   addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'aiSuggestion' | 'releaseFormLink'>, aiSuggestion: string): Promise<StudentVisit> => {
     const newVisit = {
-      id: `v${Date.now()}`,
       student_name: visitData.studentName,
       student_id: visitData.studentId,
       symptoms: visitData.symptoms,
@@ -100,7 +99,6 @@ export const db = {
     }
 
     const newRequest = {
-        id: `r${Date.now()}`,
         medicine_id: medicineId,
         medicine_name: medicine.data.name,
     };
@@ -136,7 +134,6 @@ export const db = {
 
   addAppointment: async (apptData: Omit<Appointment, 'id'>): Promise<Appointment> => {
     const newAppt = {
-        id: `a${Date.now()}`,
         student_name: apptData.studentName,
         student_id: apptData.studentId,
         reason: apptData.reason,

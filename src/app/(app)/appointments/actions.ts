@@ -12,7 +12,7 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     // Combine date and time
     const [hours, minutes] = time.split(':').map(Number);
     const dateTime = new Date(date);
-    dateTime.setHours(hours, minutes);
+    dateTime.setHours(hours, minutes, 0, 0); // Set seconds and ms to 0 for consistency
 
     await db.addAppointment({
       studentName,
