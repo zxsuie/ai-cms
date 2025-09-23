@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
 
