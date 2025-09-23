@@ -1,10 +1,14 @@
 'use client';
 
 import { Calendar } from "@/components/ui/calendar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function AppointmentCalendar() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    setDate(new Date());
+  }, []);
 
   return (
     <div className="flex justify-center">
