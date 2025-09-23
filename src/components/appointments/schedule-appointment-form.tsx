@@ -34,7 +34,7 @@ function ClientCalendar({
 
   if (!isClient) {
     // Render a skeleton placeholder on the server and initial client render
-    return <Skeleton className="h-96 w-full" />;
+    return <Skeleton className="h-[298px] w-[320px]" />;
   }
 
   return (
