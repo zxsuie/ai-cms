@@ -19,6 +19,7 @@ export function AppointmentCalendar() {
         selected={date}
         onSelect={setDate}
         className="rounded-md border"
+        initialFocus
       />
     </div>
   );
