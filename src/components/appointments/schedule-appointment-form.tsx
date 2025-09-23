@@ -19,6 +19,36 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '../ui/skeleton';
+
+// Wrapper to ensure Calendar only renders on the client
+function ClientCalendar({
+  selected,
+  onSelect,
+  ...props
+}: React.ComponentProps<typeof Calendar>) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    // Render a skeleton placeholder on the server and initial client render
+    return <Skeleton className="h-96 w-full" />;
+  }
+
+  return (
+    <Calendar
+      mode="single"
+      selected={selected}
+      onSelect={onSelect}
+      disabled={(date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+      initialFocus
+      {...props}
+    />
+  );
+}
+
 
 type AppointmentFormValues = z.infer<typeof scheduleAppointmentSchema>;
 
@@ -29,12 +59,7 @@ const timeSlots = [
 
 export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
-  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(scheduleAppointmentSchema),
@@ -64,10 +89,6 @@ export function ScheduleAppointmentForm() {
       }
     });
   }
-
-  const calendarProps = isClient 
-    ? { disabled: (date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0)) } 
-    : {};
 
   return (
     <Form {...form}>
@@ -133,12 +154,9 @@ export function ScheduleAppointmentForm() {
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
+                    <ClientCalendar
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
-                      {...calendarProps}
                     />
                   </PopoverContent>
                 </Popover>
