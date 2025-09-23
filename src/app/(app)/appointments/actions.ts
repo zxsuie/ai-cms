@@ -9,10 +9,13 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
   try {
     const { studentName, studentId, reason, date, time } = data;
     
-    // Combine date and time
+    // Combine date and time reliably to prevent timezone issues
     const [hours, minutes] = time.split(':').map(Number);
-    const dateTime = new Date(date);
-    dateTime.setHours(hours, minutes, 0, 0); // Set seconds and ms to 0 for consistency
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    const dateTime = new Date(year, month, day, hours, minutes);
 
     await db.addAppointment({
       studentName,
