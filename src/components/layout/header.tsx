@@ -16,7 +16,10 @@ export function Header() {
   
   return (
     <header className="flex h-16 items-center border-b bg-card px-4 shrink-0 sm:px-6">
-        <div className="mr-4">
+        <div className="mr-4 md:hidden">
+            <SidebarTrigger />
+        </div>
+        <div className="hidden md:block mr-4">
             <SidebarTrigger />
         </div>
       <div className="flex-1">
