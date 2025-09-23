@@ -1,3 +1,5 @@
+'use client';
+
 import { supabase } from '@/lib/supabase';
 import type { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
 
@@ -27,7 +29,7 @@ export const db = {
     }));
   },
   
-  addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'aiSuggestion'>, aiSuggestion: string): Promise<StudentVisit> => {
+  addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'aiSuggestion' | 'releaseFormLink'>, aiSuggestion: string): Promise<StudentVisit> => {
     const newVisit = {
       id: `v${Date.now()}`,
       student_name: visitData.studentName,
@@ -52,6 +54,7 @@ export const db = {
       symptoms: data.symptoms,
       reason: data.reason,
       aiSuggestion: data.ai_suggestion,
+      releaseFormLink: data.release_form_link,
     };
   },
 
@@ -78,23 +81,9 @@ export const db = {
   },
 
   dispenseMedicine: async (medicineId: string): Promise<boolean> => {
-    // This requires an RPC function in Supabase as there's no atomic decrement.
-    // SQL for the function:
-    // CREATE OR REPLACE FUNCTION dispense_medicine(med_id TEXT)
-    // RETURNS BOOLEAN AS $$
-    // DECLARE
-    //   current_stock INT;
-    // BEGIN
-    //   SELECT stock INTO current_stock FROM medicines WHERE id = med_id;
-    //   IF current_stock > 0 THEN
-    //     UPDATE medicines SET stock = stock - 1 WHERE id = med_id;
-    //     RETURN TRUE;
-    //   ELSE
-    //     RETURN FALSE;
-    //   END IF;
-    // END;
-    // $$ LANGUAGE plpgsql;
-    
+    // This action requires a special function in your Supabase database.
+    // Go to the SQL Editor in your Supabase dashboard and run the query
+    // provided in the documentation to create the `dispense_medicine` function.
     const { data, error } = await supabase.rpc('dispense_medicine', { med_id: medicineId });
 
     if (error) {
