@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTransition, useState, useEffect } from 'react';
@@ -63,6 +64,10 @@ export function ScheduleAppointmentForm() {
       }
     });
   }
+
+  const calendarProps = isClient 
+    ? { disabled: (date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0)) } 
+    : {};
 
   return (
     <Form {...form}>
@@ -132,8 +137,8 @@ export function ScheduleAppointmentForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={isClient ? (date) => date < new Date(new Date().setHours(0, 0, 0, 0)) : undefined}
                       initialFocus
+                      {...calendarProps}
                     />
                   </PopoverContent>
                 </Popover>
