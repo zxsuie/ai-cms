@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
@@ -28,7 +28,12 @@ const timeSlots = [
 
 export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(scheduleAppointmentSchema),
@@ -127,7 +132,7 @@ export function ScheduleAppointmentForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      disabled={isClient ? (date) => date < new Date(new Date().setHours(0, 0, 0, 0)) : undefined}
                       initialFocus
                     />
                   </PopoverContent>
