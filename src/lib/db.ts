@@ -1,5 +1,3 @@
-'use client';
-
 import { supabase } from '@/lib/supabase';
 import type { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
 
