@@ -1,120 +1,174 @@
-import { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
-import { revalidatePath } from 'next/cache';
+import { supabase } from '@/lib/supabase';
+import type { StudentVisit, Medicine, RefillRequest, Appointment } from '@/lib/types';
 
-// In-memory store
-let visits: StudentVisit[] = [
-  {
-    id: 'v1',
-    timestamp: new Date('2023-10-26T10:00:00Z').toISOString(),
-    studentName: 'Alice Johnson',
-    studentId: 'S12345',
-    symptoms: 'Headache and fatigue',
-    reason: 'Felt unwell during class',
-    aiSuggestion: 'Consider checking for dehydration or stress. A short rest might be beneficial.',
-  },
-  {
-    id: 'v2',
-    timestamp: new Date('2023-10-26T11:30:00Z').toISOString(),
-    studentName: 'Bob Williams',
-    studentId: 'S67890',
-    symptoms: 'Scraped knee from fall',
-    reason: 'Fell during recess',
-    aiSuggestion: 'Clean the wound with antiseptic, apply a bandage. Monitor for signs of infection.',
-  },
-];
-
-let medicines: Medicine[] = [
-  { id: 'm1', name: 'Ibuprofen (200mg)', stock: 95, threshold: 20 },
-  { id: 'm2', name: 'Acetaminophen (325mg)', stock: 78, threshold: 20 },
-  { id: 'm3', name: 'Antiseptic Wipes', stock: 150, threshold: 50 },
-  { id: 'm4', name: 'Band-Aids (Assorted)', stock: 210, threshold: 100 },
-  { id: 'm5', name: 'Cold Packs', stock: 12, threshold: 10 },
-  { id: 'm6', name: 'Cough Drops', stock: 45, threshold: 30 },
-];
-
-let requests: RefillRequest[] = [];
-
-let appointments: Appointment[] = [
-    {
-        id: 'a1',
-        studentName: 'Charlie Brown',
-        studentId: 'S55555',
-        reason: 'Follow-up on allergy medication',
-        dateTime: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
-    },
-    {
-        id: 'a2',
-        studentName: 'Lucy van Pelt',
-        studentId: 'S44444',
-        reason: 'Annual health check-up',
-        dateTime: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(),
-    }
-];
-
-// Data access layer
+// Data access layer using Supabase
 export const db = {
   getVisits: async (): Promise<StudentVisit[]> => {
-    return Promise.resolve(visits.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    const { data, error } = await supabase
+      .from('visits')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching visits:', error);
+      return [];
+    }
+    
+    // Map snake_case from db to camelCase for the app
+    return data.map(v => ({
+      id: v.id,
+      timestamp: v.timestamp,
+      studentName: v.student_name,
+      studentId: v.student_id,
+      symptoms: v.symptoms,
+      reason: v.reason,
+      aiSuggestion: v.ai_suggestion,
+      releaseFormLink: v.release_form_link,
+    }));
   },
   
   addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'aiSuggestion'>, aiSuggestion: string): Promise<StudentVisit> => {
-    const newVisit: StudentVisit = {
-      ...visitData,
+    const newVisit = {
       id: `v${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      aiSuggestion: aiSuggestion,
+      student_name: visitData.studentName,
+      student_id: visitData.studentId,
+      symptoms: visitData.symptoms,
+      reason: visitData.reason,
+      ai_suggestion: aiSuggestion,
     };
-    visits = [newVisit, ...visits];
-    return Promise.resolve(newVisit);
+
+    const { data, error } = await supabase.from('visits').insert(newVisit).select().single();
+
+    if (error) {
+      console.error('Error adding visit:', error);
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      timestamp: data.timestamp,
+      studentName: data.student_name,
+      studentId: data.student_id,
+      symptoms: data.symptoms,
+      reason: data.reason,
+      aiSuggestion: data.ai_suggestion,
+    };
   },
 
   addReleaseFormLink: async (visitId: string, link: string): Promise<boolean> => {
-    const visitIndex = visits.findIndex(v => v.id === visitId);
-    if (visitIndex > -1) {
-      visits[visitIndex].releaseFormLink = link;
-      return Promise.resolve(true);
+    const { error } = await supabase
+      .from('visits')
+      .update({ release_form_link: link })
+      .eq('id', visitId);
+
+    if (error) {
+      console.error('Error adding release form link:', error);
+      return false;
     }
-    return Promise.resolve(false);
+    return true;
   },
   
   getMedicines: async (): Promise<Medicine[]> => {
-    return Promise.resolve(medicines);
+    const { data, error } = await supabase.from('medicines').select('*').order('name');
+    if (error) {
+      console.error('Error fetching medicines:', error);
+      return [];
+    }
+    return data;
   },
 
   dispenseMedicine: async (medicineId: string): Promise<boolean> => {
-    const medicineIndex = medicines.findIndex(m => m.id === medicineId);
-    if (medicineIndex > -1 && medicines[medicineIndex].stock > 0) {
-      medicines[medicineIndex].stock -= 1;
-      return Promise.resolve(true);
+    // This requires an RPC function in Supabase as there's no atomic decrement.
+    // SQL for the function:
+    // CREATE OR REPLACE FUNCTION dispense_medicine(med_id TEXT)
+    // RETURNS BOOLEAN AS $$
+    // DECLARE
+    //   current_stock INT;
+    // BEGIN
+    //   SELECT stock INTO current_stock FROM medicines WHERE id = med_id;
+    //   IF current_stock > 0 THEN
+    //     UPDATE medicines SET stock = stock - 1 WHERE id = med_id;
+    //     RETURN TRUE;
+    //   ELSE
+    //     RETURN FALSE;
+    //   END IF;
+    // END;
+    // $$ LANGUAGE plpgsql;
+    
+    const { data, error } = await supabase.rpc('dispense_medicine', { med_id: medicineId });
+
+    if (error) {
+      console.error('Error dispensing medicine:', error);
+      return false;
     }
-    return Promise.resolve(false);
+    return data;
   },
 
   requestRefill: async (medicineId: string): Promise<boolean> => {
-    const medicine = medicines.find(m => m.id === medicineId);
-    if (medicine) {
-      const newRequest: RefillRequest = {
-        id: `r${Date.now()}`,
-        medicineId: medicine.id,
-        medicineName: medicine.name,
-        requestDate: new Date().toISOString(),
-      };
-      requests = [newRequest, ...requests];
-      return Promise.resolve(true);
+    const medicine = await supabase.from('medicines').select('name').eq('id', medicineId).single();
+    
+    if (medicine.error || !medicine.data) {
+        console.error('Error finding medicine for refill request:', medicine.error);
+        return false;
     }
-    return Promise.resolve(false);
+
+    const newRequest = {
+        id: `r${Date.now()}`,
+        medicine_id: medicineId,
+        medicine_name: medicine.data.name,
+    };
+
+    const { error } = await supabase.from('refill_requests').insert(newRequest);
+
+    if (error) {
+      console.error('Error requesting refill:', error);
+      return false;
+    }
+    return true;
   },
 
   getAppointments: async (): Promise<Appointment[]> => {
-    return Promise.resolve(appointments.sort((a,b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()));
+    const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .order('date_time', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching appointments:', error);
+        return [];
+    }
+    
+    return data.map(a => ({
+        id: a.id,
+        studentName: a.student_name,
+        studentId: a.student_id,
+        reason: a.reason,
+        dateTime: a.date_time,
+    }));
   },
 
   addAppointment: async (apptData: Omit<Appointment, 'id'>): Promise<Appointment> => {
-    const newAppt: Appointment = {
-      ...apptData,
-      id: `a${Date.now()}`,
+    const newAppt = {
+        id: `a${Date.now()}`,
+        student_name: apptData.studentName,
+        student_id: apptData.studentId,
+        reason: apptData.reason,
+        date_time: apptData.dateTime,
     };
-    appointments.push(newAppt);
-    return Promise.resolve(newAppt);
+
+    const { data, error } = await supabase.from('appointments').insert(newAppt).select().single();
+    
+    if (error) {
+        console.error('Error adding appointment:', error);
+        throw error;
+    }
+
+    return {
+        id: data.id,
+        studentName: data.student_name,
+        studentId: data.student_id,
+        reason: data.reason,
+        dateTime: data.date_time,
+    };
   }
 };
