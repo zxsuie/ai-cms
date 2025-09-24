@@ -29,11 +29,12 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
     const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
     const aiSuggestion = aiResult.suggestions || 'No suggestion available.';
 
-    await db.addVisit(data, aiSuggestion);
+    await db.addVisit({ ...data, aiSuggestion });
     
     revalidatePath('/dashboard');
     return { success: true, message: 'Visit logged successfully.' };
   } catch (error) {
+    console.error('Failed to log visit:', error);
     return { success: false, message: 'Failed to log visit.' };
   }
 }

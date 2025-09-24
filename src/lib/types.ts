@@ -16,7 +16,6 @@ export const scheduleAppointmentSchema = z.object({
   time: z.string().min(1, 'Please select a time.'),
 });
 
-// Note: In Supabase, UUIDs are strings.
 export type StudentVisit = {
   id: string; // UUID
   timestamp: string;
@@ -37,7 +36,7 @@ export type Medicine = {
 
 export type RefillRequest = {
   id: string; // UUID
-  medicineId: string;
+  medicineId: string; // UUID
   medicineName: string;
   requestDate: string;
 };

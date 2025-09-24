@@ -7,6 +7,20 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink'>;
+type AppointmentInsert = Omit<Appointment, 'id'>;
+
+
+// Helper function to map snake_case to camelCase
+const toCamelCase = (obj: any) => {
+    const newObj: {[key: string]: any} = {};
+    for (let key in obj) {
+        const newKey = key.replace(/(_\w)/g, (m) => m[1].toUpperCase());
+        newObj[newKey] = obj[key];
+    }
+    return newObj;
+};
+
 // Data access layer using Supabase
 export const db = {
   getVisits: async (): Promise<StudentVisit[]> => {
@@ -20,20 +34,10 @@ export const db = {
       return [];
     }
     
-    // Map snake_case from db to camelCase for the app
-    return data.map(v => ({
-      id: v.id,
-      timestamp: v.timestamp,
-      studentName: v.student_name,
-      studentId: v.student_id,
-      symptoms: v.symptoms,
-      reason: v.reason,
-      aiSuggestion: v.ai_suggestion,
-      releaseFormLink: v.release_form_link,
-    }));
+    return data.map(v => toCamelCase(v) as StudentVisit);
   },
   
-  addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink'>): Promise<StudentVisit> => {
+  addVisit: async (visitData: StudentVisitInsert): Promise<StudentVisit> => {
     const newVisit = {
       student_name: visitData.studentName,
       student_id: visitData.studentId,
@@ -49,16 +53,7 @@ export const db = {
       throw error;
     }
 
-    return {
-      id: data.id,
-      timestamp: data.timestamp,
-      studentName: data.student_name,
-      studentId: data.student_id,
-      symptoms: data.symptoms,
-      reason: data.reason,
-      aiSuggestion: data.ai_suggestion,
-      releaseFormLink: data.release_form_link,
-    };
+    return toCamelCase(data) as StudentVisit;
   },
 
   addReleaseFormLink: async (visitId: string, link: string): Promise<boolean> => {
@@ -80,12 +75,7 @@ export const db = {
       console.error('Error fetching medicines:', error);
       return [];
     }
-    return data.map(m => ({
-        id: m.id,
-        name: m.name,
-        stock: m.stock,
-        threshold: m.threshold,
-    }));
+    return data.map(m => toCamelCase(m) as Medicine);
   },
 
   dispenseMedicine: async (medicineId: string): Promise<boolean> => {
@@ -131,16 +121,10 @@ export const db = {
         return [];
     }
     
-    return data.map(a => ({
-        id: a.id,
-        studentName: a.student_name,
-        studentId: a.student_id,
-        reason: a.reason,
-        dateTime: a.date_time,
-    }));
+    return data.map(a => toCamelCase(a) as Appointment);
   },
 
-  addAppointment: async (apptData: Omit<Appointment, 'id'>): Promise<Appointment> => {
+  addAppointment: async (apptData: AppointmentInsert): Promise<Appointment> => {
     const newAppt = {
         student_name: apptData.studentName,
         student_id: apptData.studentId,
@@ -155,12 +139,6 @@ export const db = {
         throw error;
     }
 
-    return {
-        id: data.id,
-        studentName: data.student_name,
-        studentId: data.student_id,
-        reason: data.reason,
-        dateTime: data.date_time,
-    };
+    return toCamelCase(data) as Appointment;
   }
 };
