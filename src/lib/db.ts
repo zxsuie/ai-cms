@@ -33,13 +33,13 @@ export const db = {
     }));
   },
   
-  addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'aiSuggestion' | 'releaseFormLink'>, aiSuggestion: string): Promise<StudentVisit> => {
+  addVisit: async (visitData: Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink'>): Promise<StudentVisit> => {
     const newVisit = {
       student_name: visitData.studentName,
       student_id: visitData.studentId,
       symptoms: visitData.symptoms,
       reason: visitData.reason,
-      ai_suggestion: aiSuggestion,
+      ai_suggestion: visitData.aiSuggestion,
     };
 
     const { data, error } = await supabase.from('visits').insert(newVisit).select().single();
@@ -99,16 +99,16 @@ export const db = {
   },
 
   requestRefill: async (medicineId: string): Promise<boolean> => {
-    const medicine = await supabase.from('medicines').select('name').eq('id', medicineId).single();
+    const { data: medicine, error: findError } = await supabase.from('medicines').select('name').eq('id', medicineId).single();
     
-    if (medicine.error || !medicine.data) {
-        console.error('Error finding medicine for refill request:', medicine.error);
+    if (findError || !medicine) {
+        console.error('Error finding medicine for refill request:', findError);
         return false;
     }
 
     const newRequest = {
         medicine_id: medicineId,
-        medicine_name: medicine.data.name,
+        medicine_name: medicine.name,
     };
 
     const { error } = await supabase.from('refill_requests').insert(newRequest);
