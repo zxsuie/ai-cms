@@ -114,7 +114,7 @@ export function ScheduleAppointmentForm() {
               <FormItem>
                 <FormLabel>Student ID</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. S98765" {...field} />
+                  <Input placeholder="e.g. S98765" {...field} maxLength={8} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

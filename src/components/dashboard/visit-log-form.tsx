@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -109,7 +110,7 @@ export function VisitLogForm() {
                 <FormItem>
                   <FormLabel>Student ID</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. S123456" {...field} />
+                    <Input placeholder="e.g. S123456" {...field} maxLength={8} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
