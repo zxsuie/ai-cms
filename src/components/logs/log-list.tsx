@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { LogFilters } from './log-filters';
+import { cn } from '@/lib/utils';
 
 interface LogListProps {
   query: string;
