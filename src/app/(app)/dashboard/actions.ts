@@ -29,9 +29,16 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
     const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
     const aiSuggestion = aiResult.suggestions || 'No suggestion available.';
 
-    await db.addVisit({ ...data, aiSuggestion });
+    const newVisit = await db.addVisit({ ...data, aiSuggestion });
     
+    await db.addActivityLog('visit_logged', { 
+      studentName: newVisit.studentName, 
+      studentId: newVisit.studentId,
+      visitId: newVisit.id 
+    });
+
     revalidatePath('/dashboard');
+    revalidatePath('/logs');
     return { success: true, message: 'Visit logged successfully.' };
   } catch (error) {
     console.error('Failed to log visit:', error);
@@ -45,7 +52,10 @@ export async function generateAndSaveReleaseForm(visitId: string) {
   const fakePdfLink = `/release-forms/form-${visitId}-${Date.now()}.pdf`;
   
   await db.addReleaseFormLink(visitId, fakePdfLink);
+  await db.addActivityLog('release_form_generated', { visitId, link: fakePdfLink });
+
   revalidatePath('/dashboard');
+  revalidatePath('/logs');
   
   return { success: true, message: 'Release form generated and linked.', link: fakePdfLink };
 }

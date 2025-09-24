@@ -9,6 +9,7 @@ export function Header() {
     '/inventory': 'Medicine Inventory',
     '/reports': 'AI Reports',
     '/appointments': 'Appointment Scheduling',
+    '/logs': 'Activity Logs',
   };
   const title = pageTitles[pathname] ?? 'ClinicFlow';
   

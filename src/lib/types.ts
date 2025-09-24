@@ -48,3 +48,11 @@ export type Appointment = {
   reason: string;
   dateTime: string;
 };
+
+export type ActivityLog = {
+  id: string; // UUID
+  timestamp: string;
+  userName: string;
+  actionType: string;
+  details: Record<string, any>;
+};

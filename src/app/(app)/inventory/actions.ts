@@ -11,9 +11,20 @@ const updateStockSchema = z.object({
 
 export async function dispenseMedicineAction(medicineId: string) {
   try {
+    const medicine = await db.getMedicineById(medicineId);
+    if (!medicine) {
+      return { success: false, message: 'Medicine not found.' };
+    }
+
     const success = await db.dispenseMedicine(medicineId);
     if (success) {
+      await db.addActivityLog('medicine_dispensed', { 
+        medicineId: medicine.id, 
+        medicineName: medicine.name,
+        newStock: medicine.stock - 1,
+      });
       revalidatePath('/inventory');
+      revalidatePath('/logs');
       return {success: true, message: 'Medicine dispensed.'};
     }
     return {
@@ -27,11 +38,16 @@ export async function dispenseMedicineAction(medicineId: string) {
 
 export async function requestRefillAction(medicineId: string) {
   try {
+     const medicine = await db.getMedicineById(medicineId);
+    if (!medicine) {
+      return { success: false, message: 'Medicine not found.' };
+    }
+
     const success = await db.requestRefill(medicineId);
     if (success) {
-      // In a real app, this would also trigger a notification/email.
-      // For now, we just show a success message.
+      await db.addActivityLog('refill_requested', { medicineId: medicine.id, medicineName: medicine.name });
       revalidatePath('/inventory');
+      revalidatePath('/logs');
       return {success: true, message: 'Refill requested successfully.'};
     }
     return {success: false, message: 'Failed to request refill.'};
@@ -49,12 +65,24 @@ export async function updateMedicineStockAction(
   }
 
   try {
+    const medicine = await db.getMedicineById(validated.data.id);
+    if (!medicine) {
+      return { success: false, message: 'Medicine not found.' };
+    }
+
     const success = await db.updateMedicineStock(
       validated.data.id,
       validated.data.stock
     );
     if (success) {
+      await db.addActivityLog('stock_updated', { 
+        medicineId: medicine.id, 
+        medicineName: medicine.name,
+        oldStock: medicine.stock,
+        newStock: validated.data.stock
+      });
       revalidatePath('/inventory');
+      revalidatePath('/logs');
       return {success: true, message: 'Stock updated successfully.'};
     }
     return {success: false, message: 'Failed to update stock.'};
@@ -65,9 +93,17 @@ export async function updateMedicineStockAction(
 
 export async function deleteMedicineAction(medicineId: string) {
   try {
+    const medicine = await db.getMedicineById(medicineId);
+    if (!medicine) {
+      // Already deleted or never existed
+      return { success: true, message: 'Medicine deleted.' };
+    }
+
     const success = await db.deleteMedicine(medicineId);
     if (success) {
+      await db.addActivityLog('medicine_deleted', { medicineId: medicine.id, medicineName: medicine.name });
       revalidatePath('/inventory');
+      revalidatePath('/logs');
       return {success: true, message: 'Medicine deleted.'};
     }
     return {success: false, message: 'Failed to delete medicine.'};

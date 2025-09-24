@@ -10,7 +10,6 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
   try {
     const { studentName, studentId, reason, date, time } = data;
     
-    // Combine date and time reliably to prevent timezone issues
     const [hours, minutes] = time.split(':').map(Number);
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -18,14 +17,22 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
 
     const dateTime = new Date(year, month, day, hours, minutes);
 
-    await db.addAppointment({
+    const newAppointment = await db.addAppointment({
       studentName,
       studentId,
       reason,
       dateTime: dateTime.toISOString(),
     });
 
+    await db.addActivityLog('appointment_scheduled', { 
+      studentName, 
+      studentId,
+      appointmentId: newAppointment.id,
+      dateTime: newAppointment.dateTime
+    });
+
     revalidatePath('/appointments');
+    revalidatePath('/logs');
     return { success: true, message: 'Appointment scheduled successfully.' };
   } catch (error) {
     console.error('Failed to schedule appointment:', error);

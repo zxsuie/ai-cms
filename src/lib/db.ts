@@ -1,5 +1,5 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import type {StudentVisit, Medicine, Appointment, RefillRequest} from '@/lib/types';
+import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog} from '@/lib/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -11,29 +11,27 @@ type AppointmentInsert = Omit<Appointment, 'id' | 'dateTime'> & {dateTime: strin
 type MedicineInsert = Omit<Medicine, 'id'>;
 
 // Helper function to convert a single object's keys from snake_case to camelCase
-const toCamelCase = (obj: any) => {
-  if (!obj) return null;
+const toCamelCase = (obj: any): any => {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(toCamelCase);
+
   const newObj: {[key: string]: any} = {};
   for (const key in obj) {
     const newKey = key.replace(/(_\w)/g, m => m[1].toUpperCase());
-    newObj[newKey] = obj[key];
+    newObj[newKey] = toCamelCase(obj[key]); // Recursively convert nested objects
   }
   return newObj;
 };
 
-// Helper function to convert an array of objects' keys from snake_case to camelCase
-const toCamelCaseArray = (arr: any[]) => {
-  if (!arr) return [];
-  return arr.map(obj => toCamelCase(obj));
-};
-
 // Helper function to convert a single object's keys from camelCase to snake_case
-const toSnakeCase = (obj: any) => {
-  if (!obj) return null;
+const toSnakeCase = (obj: any): any => {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(toSnakeCase);
+
   const newObj: {[key: string]: any} = {};
   for (const key in obj) {
     const newKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-    newObj[newKey] = obj[key];
+    newObj[newKey] = toSnakeCase(obj[key]); // Recursively convert nested objects
   }
   return newObj;
 };
@@ -48,7 +46,7 @@ export const db = {
       .select('*')
       .order('timestamp', {ascending: false});
     if (error) throw error;
-    return toCamelCaseArray(data) as StudentVisit[];
+    return toCamelCase(data) as StudentVisit[];
   },
   
   addVisit: async (visitData: StudentVisitInsert): Promise<StudentVisit> => {
@@ -69,7 +67,16 @@ export const db = {
   getMedicines: async (): Promise<Medicine[]> => {
     const {data, error} = await supabase.from('medicines').select('*').order('name');
     if (error) throw error;
-    return toCamelCaseArray(data) as Medicine[];
+    return toCamelCase(data) as Medicine[];
+  },
+  
+  getMedicineById: async (medicineId: string): Promise<Medicine | null> => {
+    const { data, error } = await supabase.from('medicines').select('*').eq('id', medicineId).single();
+    if (error) {
+      console.error('Error fetching medicine by id:', error);
+      return null;
+    }
+    return toCamelCase(data) as Medicine;
   },
 
   updateMedicineStock: async (medicineId: string, newStock: number): Promise<boolean> => {
@@ -90,14 +97,17 @@ export const db = {
 
   dispenseMedicine: async (medicineId: string): Promise<boolean> => {
     const {data, error} = await supabase.rpc('dispense_medicine', {med_id: medicineId});
-    if (error) throw error;
+    if (error) {
+      console.error('Error in dispense_medicine RPC:', error);
+      return false;
+    };
     return data;
   },
 
   // Refills
   requestRefill: async (medicineId: string): Promise<boolean> => {
-    const {data: medicine, error: findError} = await supabase.from('medicines').select('name').eq('id', medicineId).single();
-    if (findError || !medicine) throw findError || new Error('Medicine not found');
+    const medicine = await db.getMedicineById(medicineId);
+    if (!medicine) throw new Error('Medicine not found');
     
     const newRequest = {medicine_id: medicineId, medicine_name: medicine.name};
     const {error} = await supabase.from('refill_requests').insert(newRequest);
@@ -111,12 +121,52 @@ export const db = {
       .select('*')
       .order('date_time', {ascending: true});
     if (error) throw error;
-    return toCamelCaseArray(data) as Appointment[];
+    return toCamelCase(data) as Appointment[];
   },
 
   addAppointment: async (apptData: AppointmentInsert): Promise<Appointment> => {
     const {data, error} = await supabase.from('appointments').insert(toSnakeCase(apptData)).select().single();
     if (error) throw error;
     return toCamelCase(data) as Appointment;
+  },
+
+  // Activity Logs
+  addActivityLog: async (
+    actionType: string,
+    details: Record<string, any>,
+    userName = 'Nurse Jackie' // Default user for now
+  ): Promise<boolean> => {
+    const logEntry = {
+      user_name: userName,
+      action_type: actionType,
+      details: details,
+    };
+    const { error } = await supabase.from('activity_logs').insert(logEntry);
+    if (error) {
+      console.error('Failed to add activity log:', error);
+    }
+    return !error;
+  },
+  
+  getActivityLogs: async (filters: { query?: string; actionType?: string } = {}): Promise<ActivityLog[]> => {
+    let query = supabase
+      .from('activity_logs')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (filters.actionType) {
+      query = query.eq('action_type', filters.actionType);
+    }
+    
+    // Note: Full-text search on JSONB is complex. This is a basic search.
+    // For production, you might want to use Supabase edge functions or more advanced queries.
+    if (filters.query) {
+      query = query.or(`details->>studentName.ilike.%${filters.query}%,details->>name.ilike.%${filters.query}%,user_name.ilike.%${filters.query}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return toCamelCase(data) as ActivityLog[];
   }
 };

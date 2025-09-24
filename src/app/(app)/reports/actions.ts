@@ -2,6 +2,7 @@
 
 import { generateAiReport } from "@/ai/flows/ai-report-generator";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 type ReportType = 'weekly' | 'monthly';
 
@@ -15,6 +16,9 @@ export async function generateReportAction(reportType: ReportType) {
       visitData: JSON.stringify(visitData),
       medicineData: JSON.stringify(medicineData),
     });
+
+    await db.addActivityLog('report_generated', { reportType });
+    revalidatePath('/logs');
 
     return { success: true, report: result };
   } catch (error) {
