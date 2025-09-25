@@ -1,4 +1,4 @@
-# **App Name**: ClinicFlow
+# **App Name**: Project Name
 
 ## Core Features:
 

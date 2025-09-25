@@ -30,7 +30,7 @@ export function MainSidebar() {
         <div className="flex items-center gap-2 p-2">
           <PlusCircle className="w-8 h-8 text-sidebar-primary" />
           <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            ClinicFlow
+            Project Name
           </h2>
         </div>
       </SidebarHeader>
