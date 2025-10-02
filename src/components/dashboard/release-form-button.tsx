@@ -66,11 +66,11 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <strong>Visit Date:</strong>
-              <span>{new Date(visit.timestamp).toLocaleDateString()}</span>
+              <span>{new Date(visit.timestamp).toLocaleDateString('en-US', { timeZone: 'Asia/Manila' })}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <strong>Visit Time:</strong>
-              <span>{new Date(visit.timestamp).toLocaleTimeString()}</span>
+              <span>{new Date(visit.timestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila' })}</span>
             </div>
             <div className="grid grid-cols-1 gap-1">
               <strong>Reason for Visit:</strong>

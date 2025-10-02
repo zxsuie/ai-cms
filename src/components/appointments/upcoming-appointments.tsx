@@ -15,7 +15,11 @@ export async function UpcomingAppointments() {
           <p className="font-semibold">{appt.studentName}</p>
           <p className="text-sm text-muted-foreground">{appt.reason}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {new Date(appt.dateTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+            {new Date(appt.dateTime).toLocaleString('en-US', { 
+              timeZone: 'Asia/Manila', 
+              dateStyle: 'medium', 
+              timeStyle: 'short' 
+            })}
           </p>
         </div>
       ))}

@@ -37,7 +37,7 @@ export async function RecentVisits() {
                 <div className="text-sm text-muted-foreground">{visit.studentId}</div>
               </TableCell>
               <TableCell>
-                {new Date(visit.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(visit.timestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' })}
               </TableCell>
               <TableCell className="hidden md:table-cell max-w-xs truncate">{visit.symptoms}</TableCell>
               <TableCell className="text-right">

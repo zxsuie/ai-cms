@@ -179,7 +179,8 @@ export function ScheduleAppointmentForm() {
                   <SelectContent>
                     {timeSlots.map((slot) => (
                       <SelectItem key={slot} value={slot}>
-                        {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString([], {
+                        {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
+                          timeZone: 'Asia/Manila',
                           hour: '2-digit',
                           minute: '2-digit',
                           hour12: true,

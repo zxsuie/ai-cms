@@ -57,7 +57,8 @@ export async function LogList({ query, actionType }: LogListProps) {
             {logs.map((log: ActivityLog) => (
               <TableRow key={log.id}>
                 <TableCell>
-                  {new Date(log.timestamp).toLocaleString([], {
+                  {new Date(log.timestamp).toLocaleString('en-US', {
+                    timeZone: 'Asia/Manila',
                     dateStyle: 'medium',
                     timeStyle: 'short',
                   })}
