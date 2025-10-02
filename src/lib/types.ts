@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const logVisitSchema = z.object({
@@ -14,6 +13,12 @@ export const scheduleAppointmentSchema = z.object({
   reason: z.string().min(1, 'Reason for appointment is required'),
   date: z.date({ required_error: 'Please select a date.' }),
   time: z.string().min(1, 'Please select a time.'),
+});
+
+export const addMedicineSchema = z.object({
+    name: z.string().min(1, 'Medicine name is required.'),
+    stock: z.coerce.number().int().min(0, 'Stock must be a non-negative integer.'),
+    threshold: z.coerce.number().int().min(0, 'Threshold must be a non-negative integer.'),
 });
 
 export type StudentVisit = {
@@ -33,6 +38,8 @@ export type Medicine = {
   stock: number;
   threshold: number;
 };
+
+export type MedicineInsert = Omit<Medicine, 'id'>;
 
 export type RefillRequest = {
   id: string; // UUID

@@ -3,11 +3,29 @@
 import {db} from '@/lib/db';
 import {revalidatePath} from 'next/cache';
 import {z} from 'zod';
+import { addMedicineSchema } from '@/lib/types';
 
 const updateStockSchema = z.object({
   id: z.string().uuid(),
   stock: z.number().min(0, 'Stock cannot be negative.'),
 });
+
+export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>) {
+  try {
+    const newMedicine = await db.addMedicine(data);
+    await db.addActivityLog('medicine_added', { 
+      medicineId: newMedicine.id,
+      medicineName: newMedicine.name,
+      initialStock: newMedicine.stock,
+    });
+    revalidatePath('/inventory');
+    revalidatePath('/logs');
+    return { success: true, message: `${newMedicine.name} added to inventory.` };
+  } catch (error) {
+    console.error('Failed to add medicine:', error);
+    return { success: false, message: 'Failed to add new medicine.' };
+  }
+}
 
 export async function dispenseMedicineAction(medicineId: string) {
   try {

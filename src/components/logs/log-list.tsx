@@ -25,6 +25,7 @@ const actionTypeBadges: Record<string, string> = {
   refill_requested: 'bg-orange-100 text-orange-800',
   report_generated: 'bg-indigo-100 text-indigo-800',
   medicine_deleted: 'bg-red-100 text-red-800',
+  medicine_added: 'bg-teal-100 text-teal-800',
   release_form_generated: 'bg-pink-100 text-pink-800',
 };
 

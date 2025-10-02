@@ -1,5 +1,5 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog} from '@/lib/types';
+import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert} from '@/lib/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -8,7 +8,6 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 
 type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink'>;
 type AppointmentInsert = Omit<Appointment, 'id' | 'dateTime'> & {dateTime: string};
-type MedicineInsert = Omit<Medicine, 'id'>;
 
 // Helper function to convert a single object's keys from snake_case to camelCase
 const toCamelCase = (obj: any): any => {
@@ -76,6 +75,12 @@ export const db = {
       console.error('Error fetching medicine by id:', error);
       return null;
     }
+    return toCamelCase(data) as Medicine;
+  },
+
+  addMedicine: async (medicineData: MedicineInsert): Promise<Medicine> => {
+    const { data, error } = await supabase.from('medicines').insert(toSnakeCase(medicineData)).select().single();
+    if (error) throw error;
     return toCamelCase(data) as Medicine;
   },
 
@@ -161,7 +166,13 @@ export const db = {
     // Note: Full-text search on JSONB is complex. This is a basic search.
     // For production, you might want to use Supabase edge functions or more advanced queries.
     if (filters.query) {
-      query = query.or(`details->>studentName.ilike.%${filters.query}%,details->>name.ilike.%${filters.query}%,user_name.ilike.%${filters.query}%`);
+      // Updated to search specific fields in the details JSONB
+      query = query.or(
+        `details->>studentName.ilike.%${filters.query}%,` +
+        `details->>medicineName.ilike.%${filters.query}%,` +
+        `details->>actionType.ilike.%${filters.query}%,` +
+        `user_name.ilike.%${filters.query}%`
+      );
     }
 
     const { data, error } = await query;
