@@ -5,11 +5,12 @@ import { useTransition, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
-import { format } from 'date-fns';
+import { format, addMinutes, subMinutes } from 'date-fns';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { scheduleAppointment } from '@/app/(app)/appointments/actions';
-import { scheduleAppointmentSchema } from '@/lib/types';
+import { scheduleAppointmentSchema, type Appointment } from '@/lib/types';
+import { useAppointments } from '@/hooks/use-appointments';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -60,6 +61,7 @@ const timeSlots = [
 export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { appointments } = useAppointments();
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(scheduleAppointmentSchema),
@@ -70,6 +72,23 @@ export function ScheduleAppointmentForm() {
       time: '',
     },
   });
+
+  const selectedDate = form.watch('date');
+
+  const isTimeSlotBooked = (time: string, date: Date, existingAppointments: Appointment[]): boolean => {
+    if (!date) return false;
+    
+    const [hours, minutes] = time.split(':').map(Number);
+    const checkTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+
+    const thirtyMinutesBefore = subMinutes(checkTime, 29);
+    const thirtyMinutesAfter = addMinutes(checkTime, 29);
+
+    return existingAppointments.some(appt => {
+        const apptTime = new Date(appt.dateTime);
+        return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
+    });
+  }
 
   function onSubmit(data: AppointmentFormValues) {
     startTransition(async () => {
@@ -156,7 +175,10 @@ export function ScheduleAppointmentForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <ClientCalendar
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date);
+                        form.setValue('time', ''); // Reset time when date changes
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -170,23 +192,28 @@ export function ScheduleAppointmentForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Time</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a time slot" />
+                      <SelectValue placeholder={!selectedDate ? "Select a date first" : "Select a time slot"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {timeSlots.map((slot) => (
-                      <SelectItem key={slot} value={slot}>
-                        {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
-                          timeZone: 'Asia/Manila',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
+                    {timeSlots.map((slot) => {
+                      const isBooked = isTimeSlotBooked(slot, selectedDate, appointments);
+                      return (
+                      <SelectItem key={slot} value={slot} disabled={isBooked}>
+                        <span className={cn(isBooked && "line-through text-muted-foreground")}>
+                          {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
+                            timeZone: 'Asia/Manila',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </span>
+                         {isBooked && <span className="text-xs text-muted-foreground ml-2">(Booked)</span>}
                       </SelectItem>
-                    ))}
+                    )})}
                   </SelectContent>
                 </Select>
                 <FormMessage />

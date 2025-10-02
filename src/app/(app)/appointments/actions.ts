@@ -5,6 +5,7 @@ import type { z } from 'zod';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import type { scheduleAppointmentSchema } from '@/lib/types';
+import { addMinutes, subMinutes } from 'date-fns';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
@@ -16,6 +17,20 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     const day = date.getDate();
 
     const dateTime = new Date(year, month, day, hours, minutes);
+
+    // Check for overlapping appointments
+    const existingAppointments = await db.getAppointments();
+    const thirtyMinutesBefore = subMinutes(dateTime, 29); // e.g. 8:31 for a 9:00 appointment
+    const thirtyMinutesAfter = addMinutes(dateTime, 29); // e.g. 9:29 for a 9:00 appointment
+
+    const conflict = existingAppointments.find(appt => {
+        const apptTime = new Date(appt.dateTime);
+        return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
+    });
+
+    if (conflict) {
+        return { success: false, message: 'This time slot is no longer available. Please select another time.' };
+    }
 
     const newAppointment = await db.addAppointment({
       studentName,
