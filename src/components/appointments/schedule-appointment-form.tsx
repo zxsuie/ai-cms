@@ -69,6 +69,7 @@ export function ScheduleAppointmentForm() {
       studentName: '',
       studentId: '',
       reason: '',
+      date: new Date(),
       time: '',
     },
   });
@@ -98,7 +99,13 @@ export function ScheduleAppointmentForm() {
           title: 'Success',
           description: result.message,
         });
-        form.reset();
+        form.reset({
+          studentName: '',
+          studentId: '',
+          reason: '',
+          date: new Date(),
+          time: '',
+        });
       } else {
         toast({
           variant: 'destructive',
