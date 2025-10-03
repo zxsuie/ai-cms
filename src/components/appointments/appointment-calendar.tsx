@@ -17,6 +17,7 @@ export function AppointmentCalendar() {
 
   useEffect(() => {
     setIsClient(true);
+    // Initialize date on the client to avoid hydration mismatch
     setSelectedDate(new Date());
   }, []);
 
