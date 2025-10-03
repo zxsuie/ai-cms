@@ -84,13 +84,18 @@ export function ScheduleAppointmentForm() {
     if (!date) return false;
     
     const [hours, minutes] = time.split(':').map(Number);
-    const checkTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+    // Create a new date object in local time for comparison.
+    // The server will handle the final timezone conversion.
+    const checkTime = new Date(date);
+    checkTime.setHours(hours, minutes, 0, 0);
 
     const thirtyMinutesBefore = subMinutes(checkTime, 29);
     const thirtyMinutesAfter = addMinutes(checkTime, 29);
 
     return existingAppointments.some(appt => {
+        // We need to parse the ISO string from the DB into a Date object.
         const apptTime = new Date(appt.dateTime);
+        // This comparison works because both are Date objects.
         return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
     });
   }
@@ -187,8 +192,10 @@ export function ScheduleAppointmentForm() {
                     <ClientCalendar
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date);
-                        form.setValue('time', ''); // Reset time when date changes
+                        if (date) {
+                          field.onChange(date);
+                          form.setValue('time', ''); // Reset time when date changes
+                        }
                       }}
                     />
                   </PopoverContent>
