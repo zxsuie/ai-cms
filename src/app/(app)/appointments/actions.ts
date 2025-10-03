@@ -3,7 +3,6 @@
 
 import type { z } from 'zod';
 import { db } from '@/lib/db';
-import { revalidatePath } from 'next/cache';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { addMinutes, subMinutes } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
@@ -56,8 +55,9 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
       dateTime: newAppointment.dateTime
     });
 
-    revalidatePath('/appointments');
-    revalidatePath('/logs');
+    // Revalidation is no longer needed as the client will update in real-time via Supabase subscriptions
+    // revalidatePath('/appointments');
+    // revalidatePath('/logs');
     return { success: true, message: 'Appointment scheduled successfully.' };
   } catch (error) {
     console.error('Failed to schedule appointment:', error);
