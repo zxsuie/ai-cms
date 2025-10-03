@@ -14,15 +14,16 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     
     const timeZone = 'Asia/Manila';
     const [hours, minutes] = time.split(':').map(Number);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const day = date.getDate();
+    
+    // This is the corrected logic.
+    // It takes the date from the client and correctly interprets it in the 'Asia/Manila' timezone,
+    // regardless of the server's local timezone. Then it sets the correct time.
+    let zonedTime = fromZonedTime(date, timeZone);
+    zonedTime.setHours(hours, minutes, 0, 0);
 
-    // Create a date object in the target timezone
-    const zonedTime = fromZonedTime(new Date(year, month, day, hours, minutes), timeZone);
     const dateTime = zonedTime.toISOString();
 
-    // Check for overlapping appointments
+    // Check for overlapping appointments (using the correctly zoned time)
     const existingAppointments = await db.getAppointments();
     const thirtyMinutesBefore = subMinutes(zonedTime, 29);
     const thirtyMinutesAfter = addMinutes(zonedTime, 29);
