@@ -2,16 +2,24 @@
 'use client';
 
 import {Calendar} from '@/components/ui/calendar';
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useEffect} from 'react';
 import {useAppointments} from '@/hooks/use-appointments';
 import {isSameDay, parseISO} from 'date-fns';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {ScrollArea} from '../ui/scroll-area';
+import { Skeleton } from '../ui/skeleton';
 
 export function AppointmentCalendar() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const {appointments, loading} = useAppointments();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setSelectedDate(new Date());
+  }, []);
+
 
   const appointmentDates = useMemo(() => {
     return appointments.map(appt => new Date(appt.dateTime));
@@ -27,33 +35,35 @@ export function AppointmentCalendar() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="flex justify-center">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={setSelectedDate}
-          className="rounded-md border"
-          initialFocus
-          modifiers={{hasAppointment: appointmentDates}}
-          modifiersStyles={{
-            hasAppointment: {
-              position: 'relative',
-            },
-          }}
-          components={{
-            DayContent: props => {
-              const {date, activeModifiers} = props;
-              const hasAppointment = activeModifiers.hasAppointment;
-              return (
-                <>
-                  <div>{date.getDate()}</div>
-                  {hasAppointment && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary"></div>
-                  )}
-                </>
-              );
-            },
-          }}
-        />
+        {!isClient ? <Skeleton className="h-[300px] w-[280px]" /> :
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            className="rounded-md border"
+            initialFocus
+            modifiers={{hasAppointment: appointmentDates}}
+            modifiersStyles={{
+              hasAppointment: {
+                position: 'relative',
+              },
+            }}
+            components={{
+              DayContent: props => {
+                const {date, activeModifiers} = props;
+                const hasAppointment = activeModifiers.hasAppointment;
+                return (
+                  <>
+                    <div>{date.getDate()}</div>
+                    {hasAppointment && (
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary"></div>
+                    )}
+                  </>
+                );
+              },
+            }}
+          />
+        }
       </div>
       <div>
         <Card>
