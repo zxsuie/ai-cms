@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/db';
 import type { Appointment } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
@@ -10,14 +10,20 @@ export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchAppointments() {
-      setLoading(true);
+  const fetchAppointments = useCallback(async () => {
+    setLoading(true);
+    try {
       const data = await db.getAppointments();
       setAppointments(data);
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+      setAppointments([]);
+    } finally {
       setLoading(false);
     }
+  }, []);
 
+  useEffect(() => {
     fetchAppointments();
 
     const channel = supabase
@@ -26,6 +32,7 @@ export function useAppointments() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'appointments' },
         (payload) => {
+          // Refetch all appointments when a change is detected
           fetchAppointments();
         }
       )
@@ -34,7 +41,7 @@ export function useAppointments() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchAppointments]);
 
   return { appointments, loading };
 }

@@ -17,13 +17,17 @@ export function UpcomingAppointments() {
     );
   }
 
-  if (appointments.length === 0) {
+  const upcoming = appointments
+    .filter(appt => new Date(appt.dateTime) >= new Date())
+    .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+
+  if (upcoming.length === 0) {
     return <p className="text-center text-muted-foreground py-8">No upcoming appointments.</p>;
   }
 
   return (
     <div className="space-y-4">
-      {appointments.slice(0, 5).map((appt: Appointment) => (
+      {upcoming.slice(0, 5).map((appt: Appointment) => (
         <div key={appt.id} className="p-3 bg-secondary rounded-lg">
           <p className="font-semibold">{appt.studentName}</p>
           <p className="text-sm text-muted-foreground">{appt.reason}</p>
