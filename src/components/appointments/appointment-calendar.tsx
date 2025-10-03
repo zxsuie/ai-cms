@@ -1,31 +1,107 @@
 'use client';
 
-import { Calendar } from "@/components/ui/calendar";
-import { useState, useEffect } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import {Calendar} from '@/components/ui/calendar';
+import {useState, useMemo} from 'react';
+import {useAppointments} from '@/hooks/use-appointments';
+import {isSameDay, parseISO} from 'date-fns';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
+import {ScrollArea} from '../ui/scroll-area';
 
 export function AppointmentCalendar() {
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [isClient, setIsClient] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const {appointments, loading} = useAppointments();
 
-  useEffect(() => {
-    setIsClient(true);
-    setDate(new Date());
-  }, []);
+  const appointmentDates = useMemo(() => {
+    return appointments.map(appt => new Date(appt.dateTime));
+  }, [appointments]);
+
+  const appointmentsForSelectedDay = useMemo(() => {
+    if (!selectedDate) return [];
+    return appointments
+      .filter(appt => isSameDay(new Date(appt.dateTime), selectedDate))
+      .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+  }, [selectedDate, appointments]);
 
   return (
-    <div className="flex justify-center">
-      {isClient ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex justify-center">
         <Calendar
           mode="single"
-          selected={date}
-          onSelect={setDate}
+          selected={selectedDate}
+          onSelect={setSelectedDate}
           className="rounded-md border"
           initialFocus
+          modifiers={{hasAppointment: appointmentDates}}
+          modifiersStyles={{
+            hasAppointment: {
+              position: 'relative',
+            },
+          }}
+          components={{
+            DayContent: props => {
+              const {date, activeModifiers} = props;
+              const hasAppointment = activeModifiers.hasAppointment;
+              return (
+                <>
+                  <div>{date.getDate()}</div>
+                  {hasAppointment && (
+                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary"></div>
+                  )}
+                </>
+              );
+            },
+          }}
         />
-      ) : (
-        <Skeleton className="h-[298px] w-[320px]" />
-      )}
+      </div>
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Appointments for{' '}
+              {selectedDate
+                ? selectedDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : '...'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64">
+              {loading ? (
+                <p>Loading...</p>
+              ) : appointmentsForSelectedDay.length > 0 ? (
+                <div className="space-y-4">
+                  {appointmentsForSelectedDay.map(appt => (
+                    <div key={appt.id} className="p-3 bg-secondary rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold">{appt.studentName}</p>
+                          <p className="text-sm text-muted-foreground">{appt.reason}</p>
+                        </div>
+                        <Badge variant="outline">
+                          {new Date(appt.dateTime).toLocaleTimeString('en-US', {
+                            timeZone: 'Asia/Manila',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No appointments scheduled for this day.
+                </p>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -25,15 +25,6 @@ export default function AppointmentsPage() {
               <ScheduleAppointmentForm />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar</CardTitle>
-              <CardDescription>View scheduled appointments by date.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AppointmentCalendar />
-            </CardContent>
-          </Card>
         </div>
         <div className="lg:col-span-1">
           <Card>
@@ -49,6 +40,15 @@ export default function AppointmentsPage() {
           </Card>
         </div>
       </div>
+       <Card>
+          <CardHeader>
+            <CardTitle>Calendar</CardTitle>
+            <CardDescription>View scheduled appointments by date.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AppointmentCalendar />
+          </CardContent>
+        </Card>
     </div>
   );
 }
