@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import {
   Table,
   TableBody,
@@ -22,7 +22,7 @@ const tables = [
 
 export async function RlsPolicies() {
     const tablePolicies = await Promise.all(tables.map(async (table) => {
-        const { data, error } = await db.supabase.rpc('is_rls_enabled', { table_name: table });
+        const { data, error } = await supabase.rpc('is_rls_enabled', { table_name: table });
         const isEnabled = error ? false : data;
         return { name: table, rlsEnabled: isEnabled };
     }));
