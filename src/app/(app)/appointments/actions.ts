@@ -12,24 +12,26 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
   try {
     const { studentName, studentId, studentYear, studentSection, reason, date, time } = data;
     
-    const timeZone = 'Asia/Manila';
+    // This should always be 'Asia/Manila' as per user requirement.
+    const timeZone = 'Asia/Manila'; 
     const [hours, minutes] = time.split(':').map(Number);
     
-    // This is the corrected logic.
-    // It takes the date from the client and correctly interprets it in the 'Asia/Manila' timezone,
-    // regardless of the server's local timezone. Then it sets the correct time.
+    // Correctly interpret the client's date in the target timezone.
+    // This creates a Date object that represents the exact moment the user intended,
+    // regardless of the server's local timezone.
     let zonedTime = fromZonedTime(date, timeZone);
     zonedTime.setHours(hours, minutes, 0, 0);
 
+    // Convert to ISO string (which will be in UTC 'Z' format) for database storage.
     const dateTime = zonedTime.toISOString();
 
-    // Check for overlapping appointments (using the correctly zoned time)
+    // Check for overlapping appointments using the correct zoned time
     const existingAppointments = await db.getAppointments();
     const thirtyMinutesBefore = subMinutes(zonedTime, 29);
     const thirtyMinutesAfter = addMinutes(zonedTime, 29);
 
     const conflict = existingAppointments.find(appt => {
-        const apptTime = new Date(appt.dateTime);
+        const apptTime = new Date(appt.dateTime); // DB time is in UTC, new Date() correctly parses it.
         return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
     });
 
@@ -37,13 +39,14 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
         return { success: false, message: 'This time slot is no longer available. Please select another time.' };
     }
 
+    // Pass the correct ISO string to the database layer.
     const newAppointment = await db.addAppointment({
       studentName,
       studentId,
       studentYear,
       studentSection,
       reason,
-      dateTime: dateTime,
+      dateTime: dateTime, 
     });
 
     await db.addActivityLog('appointment_scheduled', { 

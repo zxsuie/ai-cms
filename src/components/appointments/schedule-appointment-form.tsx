@@ -76,15 +76,10 @@ export function ScheduleAppointmentForm() {
       studentYear: '',
       studentSection: '',
       reason: '',
-      date: undefined, // Initialize date as undefined to prevent server/client mismatch
+      date: new Date(), // Initialize with a value, but will be client-rendered
       time: '',
     },
   });
-
-  // Set default date on the client side only
-  useEffect(() => {
-    form.setValue('date', new Date());
-  }, [form]);
 
   const selectedDate = form.watch('date');
 
@@ -92,8 +87,8 @@ export function ScheduleAppointmentForm() {
     if (!date) return false;
     
     const [hours, minutes] = time.split(':').map(Number);
-    // Create a new date object in local time for comparison.
-    // The server will handle the final timezone conversion.
+    // Create a new date object representing the chosen slot in the local timezone of the browser.
+    // This matches the logic on the server which now uses fromZonedTime.
     const checkTime = new Date(date);
     checkTime.setHours(hours, minutes, 0, 0);
 
@@ -101,9 +96,9 @@ export function ScheduleAppointmentForm() {
     const thirtyMinutesAfter = addMinutes(checkTime, 29);
 
     return existingAppointments.some(appt => {
-        // We need to parse the ISO string from the DB into a Date object.
+        // The DB returns a UTC timestamp string. new Date() correctly parses this into a Date object.
         const apptTime = new Date(appt.dateTime);
-        // This comparison works because both are Date objects.
+        // This comparison works because both are Date objects representing specific moments in time.
         return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
     });
   }
@@ -118,7 +113,8 @@ export function ScheduleAppointmentForm() {
         return;
     }
     startTransition(async () => {
-      const result = await scheduleAppointment(data as z.infer<typeof scheduleAppointmentSchema> & { date: Date });
+      // The server action now expects `date` to be a Date object.
+      const result = await scheduleAppointment(data);
       if (result.success) {
         toast({
           title: 'Success',
@@ -273,12 +269,11 @@ export function ScheduleAppointmentForm() {
                   </FormControl>
                   <SelectContent>
                     {timeSlots.map((slot) => {
-                      const isBooked = isTimeSlotBooked(slot, selectedDate!, appointments);
+                      const isBooked = selectedDate ? isTimeSlotBooked(slot, selectedDate, appointments) : false;
                       return (
                       <SelectItem key={slot} value={slot} disabled={isBooked}>
                         <span className={cn(isBooked && "line-through text-muted-foreground")}>
                           {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
-                            timeZone: 'Asia/Manila',
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: true,
