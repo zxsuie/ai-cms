@@ -11,7 +11,6 @@ export function Header() {
     '/reports': 'AI Reports',
     '/appointments': 'Appointment Scheduling',
     '/logs': 'Activity Logs',
-    '/security': 'Security',
   };
   const title = pageTitles[pathname] ?? 'Project Name';
   
