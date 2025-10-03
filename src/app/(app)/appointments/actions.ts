@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { addMinutes, subMinutes } from 'date-fns';
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
@@ -30,7 +30,7 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
 
     const conflict = existingAppointments.find(appt => {
         const apptTime = new Date(appt.dateTime);
-        return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
+        return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
     });
 
     if (conflict) {
