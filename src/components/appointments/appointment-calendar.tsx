@@ -18,8 +18,10 @@ export function AppointmentCalendar() {
   useEffect(() => {
     setIsClient(true);
     // Initialize date on the client to avoid hydration mismatch
-    setSelectedDate(new Date());
-  }, []);
+    if (!selectedDate) {
+        setSelectedDate(new Date());
+    }
+  }, [selectedDate]);
 
 
   const appointmentDates = useMemo(() => {
@@ -83,7 +85,10 @@ export function AppointmentCalendar() {
           <CardContent>
             <ScrollArea className="h-64">
               {loading ? (
-                <p>Loading...</p>
+                <div className="space-y-4">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
               ) : appointmentsForSelectedDay.length > 0 ? (
                 <div className="space-y-4">
                   {appointmentsForSelectedDay.map(appt => (

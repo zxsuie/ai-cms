@@ -29,6 +29,15 @@ function ClientCalendar({
   onSelect,
   ...props
 }: React.ComponentProps<typeof Calendar>) {
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) {
+        return <Skeleton className="h-[280px] w-[240px]" />;
+    }
+
     return (
         <Calendar
         mode="single"
