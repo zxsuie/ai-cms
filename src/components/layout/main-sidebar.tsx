@@ -57,7 +57,7 @@ export function MainSidebar() {
             <AvatarFallback>N</AvatarFallback>
           </Avatar>
           <div className="group-data-[collapsible=icon]:hidden">
-            <p className="font-semibold text-sm text-sidebar-foreground">Nurse Jackie</p>
+            <p className="font-semibold text-sm text-sidebar-foreground">Nurse Manuel</p>
             <p className="text-xs text-sidebar-foreground/70">Administrator</p>
           </div>
         </div>
