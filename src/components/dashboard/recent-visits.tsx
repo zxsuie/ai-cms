@@ -35,6 +35,7 @@ export async function RecentVisits() {
               <TableCell>
                 <div className="font-medium">{visit.studentName}</div>
                 <div className="text-sm text-muted-foreground">{visit.studentId}</div>
+                <div className="text-xs text-muted-foreground">{visit.studentYear} - {visit.studentSection}</div>
               </TableCell>
               <TableCell>
                 {new Date(visit.timestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' })}

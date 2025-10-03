@@ -10,7 +10,7 @@ import { fromZonedTime } from 'date-fns-tz';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
-    const { studentName, studentId, reason, date, time } = data;
+    const { studentName, studentId, studentYear, studentSection, reason, date, time } = data;
     
     const timeZone = 'Asia/Manila';
     const [hours, minutes] = time.split(':').map(Number);
@@ -40,6 +40,8 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     const newAppointment = await db.addAppointment({
       studentName,
       studentId,
+      studentYear,
+      studentSection,
       reason,
       dateTime: dateTime,
     });

@@ -79,7 +79,8 @@ export function AppointmentCalendar() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-semibold">{appt.studentName}</p>
-                          <p className="text-sm text-muted-foreground">{appt.reason}</p>
+                          <p className="text-sm text-muted-foreground">{appt.studentYear} - {appt.studentSection}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{appt.reason}</p>
                         </div>
                         <Badge variant="outline">
                           {new Date(appt.dateTime).toLocaleTimeString('en-US', {

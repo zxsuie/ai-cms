@@ -64,6 +64,10 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               <strong>Student ID:</strong>
               <span>{visit.studentId}</span>
             </div>
+             <div className="grid grid-cols-2 gap-2">
+              <strong>Year & Section:</strong>
+              <span>{visit.studentYear} - {visit.studentSection}</span>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <strong>Visit Date:</strong>
               <span>{new Date(visit.timestamp).toLocaleDateString('en-US', { timeZone: 'Asia/Manila' })}</span>

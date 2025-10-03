@@ -16,8 +16,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Lightbulb, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 type VisitFormValues = z.infer<typeof logVisitSchema>;
+
+const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
 export function VisitLogForm() {
   const [isPending, startTransition] = useTransition();
@@ -30,6 +33,8 @@ export function VisitLogForm() {
     defaultValues: {
       studentName: '',
       studentId: '',
+      studentYear: '',
+      studentSection: '',
       symptoms: '',
       reason: '',
     },
@@ -116,6 +121,43 @@ export function VisitLogForm() {
                 </FormItem>
               )}
             />
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <FormField
+                control={form.control}
+                name="studentYear"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select year level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {yearLevels.map(year => (
+                          <SelectItem key={year} value={year}>{year}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="studentSection"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Section</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. BSCS-2A" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="reason"

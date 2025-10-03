@@ -11,9 +11,9 @@ export function UpcomingAppointments() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
       </div>
     );
   }
@@ -35,7 +35,8 @@ export function UpcomingAppointments() {
       {upcoming.map((appt: Appointment) => (
         <div key={appt.id} className="p-3 bg-secondary rounded-lg">
           <p className="font-semibold">{appt.studentName}</p>
-          <p className="text-sm text-muted-foreground">{appt.reason}</p>
+          <p className="text-xs text-muted-foreground">{appt.studentYear} - {appt.studentSection}</p>
+          <p className="text-sm text-muted-foreground mt-1">{appt.reason}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {new Date(appt.dateTime).toLocaleString('en-US', { 
               timeZone: 'Asia/Manila', 

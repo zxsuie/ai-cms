@@ -61,6 +61,7 @@ const timeSlots = [
   '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:00',
   '13:30', '14:00', '14:30', '15:00', '15:30', '16:00',
 ];
+const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
 export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
@@ -72,6 +73,8 @@ export function ScheduleAppointmentForm() {
     defaultValues: {
       studentName: '',
       studentId: '',
+      studentYear: '',
+      studentSection: '',
       reason: '',
       date: new Date(),
       time: '',
@@ -111,6 +114,8 @@ export function ScheduleAppointmentForm() {
         form.reset({
           studentName: '',
           studentId: '',
+          studentYear: '',
+          studentSection: '',
           reason: '',
           date: new Date(),
           time: '',
@@ -150,6 +155,43 @@ export function ScheduleAppointmentForm() {
                 <FormLabel>Student ID</FormLabel>
                 <FormControl>
                   <Input placeholder="e.g. S98765" {...field} maxLength={8} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="studentYear"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select year level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {yearLevels.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="studentSection"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Section</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. BSCS-2A" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
