@@ -76,10 +76,15 @@ export function ScheduleAppointmentForm() {
       studentYear: '',
       studentSection: '',
       reason: '',
-      date: new Date(),
+      date: undefined, // Initialize date as undefined to prevent server/client mismatch
       time: '',
     },
   });
+
+  // Set default date on the client side only
+  useEffect(() => {
+    form.setValue('date', new Date());
+  }, [form]);
 
   const selectedDate = form.watch('date');
 
@@ -104,8 +109,16 @@ export function ScheduleAppointmentForm() {
   }
 
   function onSubmit(data: AppointmentFormValues) {
+    if (!data.date) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Please select a date for the appointment.',
+        });
+        return;
+    }
     startTransition(async () => {
-      const result = await scheduleAppointment(data);
+      const result = await scheduleAppointment(data as z.infer<typeof scheduleAppointmentSchema> & { date: Date });
       if (result.success) {
         toast({
           title: 'Success',
@@ -168,7 +181,7 @@ export function ScheduleAppointmentForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Year</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select year level" />
@@ -260,7 +273,7 @@ export function ScheduleAppointmentForm() {
                   </FormControl>
                   <SelectContent>
                     {timeSlots.map((slot) => {
-                      const isBooked = isTimeSlotBooked(slot, selectedDate, appointments);
+                      const isBooked = isTimeSlotBooked(slot, selectedDate!, appointments);
                       return (
                       <SelectItem key={slot} value={slot} disabled={isBooked}>
                         <span className={cn(isBooked && "line-through text-muted-foreground")}>

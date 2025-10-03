@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const logVisitSchema = z.object({
@@ -15,7 +16,7 @@ export const scheduleAppointmentSchema = z.object({
   studentYear: z.string().min(1, 'Year level is required'),
   studentSection: z.string().min(1, 'Section is required'),
   reason: z.string().min(1, 'Reason for appointment is required'),
-  date: z.date({ required_error: 'Please select a date.' }),
+  date: z.date({ required_error: 'Please select a date.' }).optional(), // Make optional to avoid server/client mismatch on init
   time: z.string().min(1, 'Please select a time.'),
 });
 
