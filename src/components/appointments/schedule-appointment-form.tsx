@@ -43,7 +43,11 @@ function ClientCalendar({
       mode="single"
       selected={selected}
       onSelect={onSelect}
-      disabled={(date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+      disabled={(date: Date) =>
+          date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+          date.getDay() === 0 || 
+          date.getDay() === 6
+      }
       initialFocus
       {...props}
     />
