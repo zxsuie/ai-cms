@@ -1,3 +1,4 @@
+
 'use server';
 
 import {db} from '@/lib/db';
@@ -33,8 +34,12 @@ export async function dispenseMedicineAction(medicineId: string) {
     if (!medicine) {
       return { success: false, message: 'Medicine not found.' };
     }
+    if (medicine.stock <= 0) {
+      return { success: false, message: 'Medicine is out of stock.' };
+    }
 
     const success = await db.dispenseMedicine(medicineId);
+
     if (success) {
       await db.addActivityLog('medicine_dispensed', { 
         medicineId: medicine.id, 
@@ -50,6 +55,7 @@ export async function dispenseMedicineAction(medicineId: string) {
       message: 'Failed to dispense: Out of stock or not found.',
     };
   } catch (error) {
+    console.error('Error dispensing medicine:', error)
     return {success: false, message: 'An error occurred while dispensing.'};
   }
 }
