@@ -1,8 +1,21 @@
-import { db } from "@/lib/db";
-import { Appointment } from "@/lib/types";
+'use client';
 
-export async function UpcomingAppointments() {
-  const appointments = await db.getAppointments();
+import { useAppointments } from "@/hooks/use-appointments";
+import { Appointment } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
+
+export function UpcomingAppointments() {
+  const { appointments, loading } = useAppointments();
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
 
   if (appointments.length === 0) {
     return <p className="text-center text-muted-foreground py-8">No upcoming appointments.</p>;
