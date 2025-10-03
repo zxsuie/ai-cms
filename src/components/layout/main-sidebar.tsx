@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { PlusCircle, LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -19,6 +19,7 @@ const menuItems = [
   { href: '/appointments', label: 'Appointments', icon: CalendarDays },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
   { href: '/logs', label: 'Logs', icon: ScrollText },
+  { href: '/security', label: 'Security', icon: ShieldCheck },
 ];
 
 export function MainSidebar() {
