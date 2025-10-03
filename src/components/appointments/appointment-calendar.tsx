@@ -4,7 +4,7 @@
 import {Calendar} from '@/components/ui/calendar';
 import {useState, useMemo, useEffect} from 'react';
 import {useAppointments} from '@/hooks/use-appointments';
-import {isSameDay, parseISO} from 'date-fns';
+import {isSameDay} from 'date-fns';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {ScrollArea} from '../ui/scroll-area';
@@ -73,7 +73,7 @@ export function AppointmentCalendar() {
           <CardHeader>
             <CardTitle>
               Appointments for{' '}
-              {selectedDate
+              {selectedDate && isClient
                 ? selectedDate.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',

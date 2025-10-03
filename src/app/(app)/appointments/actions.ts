@@ -19,7 +19,7 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     // Correctly interpret the client's date in the target timezone.
     // This creates a Date object that represents the exact moment the user intended,
     // regardless of the server's local timezone.
-    let zonedTime = fromZonedTime(date, timeZone);
+    const zonedTime = fromZonedTime(date, timeZone);
     zonedTime.setHours(hours, minutes, 0, 0);
 
     // Convert to ISO string (which will be in UTC 'Z' format) for database storage.
@@ -55,9 +55,11 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
       appointmentId: newAppointment.id,
       dateTime: newAppointment.dateTime
     });
-
-    revalidatePath('/appointments');
-    revalidatePath('/logs');
+    
+    // No longer needed due to real-time subscription
+    // revalidatePath('/appointments');
+    // revalidatePath('/logs');
+    
     return { success: true, message: 'Appointment scheduled successfully.' };
   } catch (error) {
     console.error('Failed to schedule appointment:', error);

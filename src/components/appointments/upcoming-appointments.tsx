@@ -22,8 +22,9 @@ export function UpcomingAppointments() {
   const upcoming = appointments
     .filter(appt => {
         const apptDate = new Date(appt.dateTime);
-        // We only want appointments for today that haven't passed yet.
-        return isToday(apptDate) && apptDate >= new Date();
+        const now = new Date();
+        // Check if the appointment is today and hasn't passed yet
+        return isToday(apptDate) && apptDate >= now;
     })
     .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
 
@@ -38,7 +39,7 @@ export function UpcomingAppointments() {
           <p className="font-semibold">{appt.studentName}</p>
           <p className="text-xs text-muted-foreground">{appt.studentYear} - {appt.studentSection}</p>
           <p className="text-sm text-muted-foreground mt-1">{appt.reason}</p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs font-medium text-primary mt-1">
             {new Date(appt.dateTime).toLocaleString('en-US', { 
               timeZone: 'Asia/Manila', 
               hour: 'numeric',

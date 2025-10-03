@@ -80,7 +80,7 @@ export function ScheduleAppointmentForm() {
       studentYear: '',
       studentSection: '',
       reason: '',
-      // Do not set a default `new Date()` here to avoid hydration mismatch
+      date: undefined, // Initialize as undefined
       time: '',
     },
   });
@@ -103,7 +103,7 @@ export function ScheduleAppointmentForm() {
         // The DB returns a UTC timestamp string. new Date() correctly parses this into a Date object.
         const apptTime = new Date(appt.dateTime);
         // This comparison works because both are Date objects representing specific moments in time.
-        return apptTime > thirtyMinutesBefore && apptTime < thirtyMinutesAfter;
+        return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
     });
   }
 
@@ -117,7 +117,6 @@ export function ScheduleAppointmentForm() {
         return;
     }
     startTransition(async () => {
-      // The server action now expects `date` to be a Date object.
       const result = await scheduleAppointment(data);
       if (result.success) {
         toast({
