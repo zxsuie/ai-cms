@@ -28,32 +28,21 @@ function ClientCalendar({
   onSelect,
   ...props
 }: React.ComponentProps<typeof Calendar>) {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    // Render a skeleton placeholder on the server and initial client render
-    return <Skeleton className="h-[298px] w-[320px]" />;
-  }
-
-  return (
-    <Calendar
-      mode="single"
-      selected={selected}
-      onSelect={onSelect}
-      disabled={(date: Date) =>
-          date < new Date(new Date().setHours(0, 0, 0, 0)) ||
-          date.getDay() === 0 || 
-          date.getDay() === 6
-      }
-      initialFocus
-      {...props}
-    />
-  );
+    return (
+        <Calendar
+        mode="single"
+        selected={selected}
+        onSelect={onSelect}
+        disabled={(date: Date) =>
+            date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+            date.getDay() === 0 || 
+            date.getDay() === 6
+        }
+        initialFocus
+        {...props}
+        />
+    );
 }
-
 
 type AppointmentFormValues = z.infer<typeof scheduleAppointmentSchema>;
 
@@ -67,6 +56,11 @@ export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const { appointments } = useAppointments();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(scheduleAppointmentSchema),
@@ -76,7 +70,7 @@ export function ScheduleAppointmentForm() {
       studentYear: '',
       studentSection: '',
       reason: '',
-      date: new Date(), // Initialize with a value, but will be client-rendered
+      // Do not set a default `new Date()` here to avoid hydration mismatch
       time: '',
     },
   });
@@ -126,7 +120,7 @@ export function ScheduleAppointmentForm() {
           studentYear: '',
           studentSection: '',
           reason: '',
-          date: new Date(),
+          date: undefined,
           time: '',
         });
       } else {
@@ -221,73 +215,88 @@ export function ScheduleAppointmentForm() {
           )}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={'outline'}
-                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                      >
-                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <ClientCalendar
-                      selected={field.value}
-                      onSelect={(date) => {
-                        if (date) {
-                          field.onChange(date);
-                          form.setValue('time', ''); // Reset time when date changes
-                        }
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Time</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={!selectedDate ? "Select a date first" : "Select a time slot"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {timeSlots.map((slot) => {
-                      const isBooked = selectedDate ? isTimeSlotBooked(slot, selectedDate, appointments) : false;
-                      return (
-                      <SelectItem key={slot} value={slot} disabled={isBooked}>
-                        <span className={cn(isBooked && "line-through text-muted-foreground")}>
-                          {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                        </span>
-                         {isBooked && <span className="text-xs text-muted-foreground ml-2">(Booked)</span>}
-                      </SelectItem>
-                    )})}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!isClient ? (
+            <>
+              <div className='space-y-2'>
+                <Label>Date</Label>
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className='space-y-2'>
+                <Label>Time</Label>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </>
+          ) : (
+            <>
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                          >
+                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <ClientCalendar
+                          selected={field.value}
+                          onSelect={(date) => {
+                            if (date) {
+                              field.onChange(date);
+                              form.setValue('time', ''); // Reset time when date changes
+                            }
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={!selectedDate ? "Select a date first" : "Select a time slot"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {timeSlots.map((slot) => {
+                          const isBooked = selectedDate ? isTimeSlotBooked(slot, selectedDate, appointments) : false;
+                          return (
+                          <SelectItem key={slot} value={slot} disabled={isBooked}>
+                            <span className={cn(isBooked && "line-through text-muted-foreground")}>
+                              {new Date(`1970-01-01T${slot}:00`).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true,
+                              })}
+                            </span>
+                            {isBooked && <span className="text-xs text-muted-foreground ml-2">(Booked)</span>}
+                          </SelectItem>
+                        )})}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
 
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
