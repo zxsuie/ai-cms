@@ -12,7 +12,13 @@ function formatActionType(type: string) {
     return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-export function LogFilters({ actionTypes }: { actionTypes: string[] }) {
+interface LogFiltersProps {
+    actionTypes: string[];
+    query?: string;
+    actionType?: string;
+}
+
+export function LogFilters({ actionTypes, query, actionType }: LogFiltersProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -45,12 +51,12 @@ export function LogFilters({ actionTypes }: { actionTypes: string[] }) {
           placeholder="Search logs..."
           className="pl-10"
           onChange={(e) => handleSearch(e.target.value)}
-          defaultValue={searchParams.get('query')?.toString()}
+          defaultValue={query}
         />
       </div>
       <div className="flex items-center gap-2">
         <Filter className="h-4 w-4 text-muted-foreground" />
-        <Select onValueChange={handleFilterChange} defaultValue={searchParams.get('actionType') || 'all'}>
+        <Select onValueChange={handleFilterChange} defaultValue={actionType || 'all'}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filter by action" />
           </SelectTrigger>

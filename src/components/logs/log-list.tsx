@@ -42,7 +42,11 @@ export async function LogList({ query, actionType }: LogListProps) {
 
   return (
     <div className="space-y-4">
-      <LogFilters actionTypes={uniqueActionTypes} />
+      <LogFilters 
+        actionTypes={uniqueActionTypes}
+        query={query}
+        actionType={actionType}
+      />
       
       <div className="w-full overflow-x-auto rounded-md border">
         <Table>
