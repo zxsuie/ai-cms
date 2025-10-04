@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/db';
 import { ActivityLog } from '@/lib/types';
 import {
@@ -11,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { LogFilters } from './log-filters';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface LogListProps {
   query: string;
@@ -62,11 +64,7 @@ export async function LogList({ query, actionType }: LogListProps) {
             {logs.map((log: ActivityLog) => (
               <TableRow key={log.id}>
                 <TableCell>
-                  {new Date(log.timestamp).toLocaleString('en-US', {
-                    timeZone: 'Asia/Manila',
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })}
+                  {format(new Date(log.timestamp), 'PPpp')}
                 </TableCell>
                 <TableCell>{log.userName}</TableCell>
                 <TableCell>

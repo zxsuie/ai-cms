@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ReleaseFormButton } from './release-form-button';
 import { StudentVisit } from '@/lib/types';
+import { format } from 'date-fns';
 
 export async function RecentVisits() {
   const visits = await db.getVisits();
@@ -38,7 +39,7 @@ export async function RecentVisits() {
                 <div className="text-xs text-muted-foreground">{visit.studentYear} - {visit.studentSection}</div>
               </TableCell>
               <TableCell>
-                {new Date(visit.timestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' })}
+                {format(new Date(visit.timestamp), 'hh:mm a')}
               </TableCell>
               <TableCell className="hidden md:table-cell max-w-xs truncate">{visit.symptoms}</TableCell>
               <TableCell className="text-right">

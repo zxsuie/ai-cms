@@ -74,11 +74,7 @@ export function AppointmentCalendar() {
             <CardTitle>
               Appointments for{' '}
               {selectedDate && isClient
-                ? selectedDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })
+                ? format(selectedDate, 'EEEE, MMMM d')
                 : '...'}
             </CardTitle>
           </CardHeader>

@@ -16,6 +16,7 @@ import { StudentVisit } from '@/lib/types';
 import { generateAndSaveReleaseForm } from '@/app/(app)/dashboard/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, CheckCircle } from 'lucide-react';
+import { format } from 'date-fns';
 
 export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -67,11 +68,11 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <strong>Visit Date:</strong>
-              <span>{new Date(visit.timestamp).toLocaleDateString('en-US', { timeZone: 'Asia/Manila' })}</span>
+              <span>{format(new Date(visit.timestamp), 'PPP')}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <strong>Visit Time:</strong>
-              <span>{new Date(visit.timestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila' })}</span>
+              <span>{format(new Date(visit.timestamp), 'p')}</span>
             </div>
             <div className="grid grid-cols-1 gap-1">
               <strong>Reason for Visit:</strong>
