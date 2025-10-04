@@ -1,12 +1,17 @@
+
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 export default function AgreementPage() {
   const router = useRouter();
+  const [isAgreed, setIsAgreed] = useState(false);
 
   const handleAgree = () => {
     router.push('/login');
@@ -98,7 +103,18 @@ export default function AgreementPage() {
               </ul>
             </div>
           </ScrollArea>
-          <Button onClick={handleAgree} className="w-full">
+          <div className="items-top flex space-x-2">
+            <Checkbox id="terms1" onCheckedChange={(checked) => setIsAgreed(checked as boolean)} />
+            <div className="grid gap-1.5 leading-none">
+              <Label
+                htmlFor="terms1"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                I have read and agree to the terms and conditions.
+              </Label>
+            </div>
+          </div>
+          <Button onClick={handleAgree} disabled={!isAgreed} className="w-full">
             Agree & Continue
           </Button>
         </CardContent>
