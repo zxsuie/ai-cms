@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppointments } from '@/hooks/use-appointments';
-import { differenceInMinutes, parseISO, format } from 'date-fns';
+import { differenceInMinutes, parse, format, isToday } from 'date-fns';
 import { Bell, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,7 +19,13 @@ export function NotificationBell() {
     const checkAppointments = () => {
       const now = new Date();
       const upcoming = appointments.filter(appt => {
-        const appointmentTime = parseISO(appt.dateTime);
+        const apptDate = parse(appt.appointmentDate, 'yyyy-MM-dd', new Date());
+        if (!isToday(apptDate)) return false;
+
+        const [hour, minute] = appt.appointmentTime.split(':').map(Number);
+        const appointmentTime = new Date();
+        appointmentTime.setHours(hour, minute, 0, 0);
+
         const minutesUntil = differenceInMinutes(appointmentTime, now);
         return minutesUntil >= 0 && minutesUntil <= NOTIFICATION_WINDOW_MINUTES;
       });
@@ -65,7 +71,7 @@ export function NotificationBell() {
                     <p className="text-sm font-medium">{appt.studentName}</p>
                     <p className="text-xs text-muted-foreground">{appt.reason}</p>
                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(parseISO(appt.dateTime), 'hh:mm a')}
+                        {format(new Date(`1970-01-01T${appt.appointmentTime}`), 'hh:mm a')}
                     </p>
                   </div>
                 </div>

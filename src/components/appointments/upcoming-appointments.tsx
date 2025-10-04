@@ -4,7 +4,7 @@
 import { useAppointments } from "@/hooks/use-appointments";
 import { Appointment } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
-import { isToday, parseISO, format } from "date-fns";
+import { isToday, parse, format } from "date-fns";
 
 export function UpcomingAppointments() {
   const { appointments, loading } = useAppointments();
@@ -21,12 +21,18 @@ export function UpcomingAppointments() {
 
   const upcoming = appointments
     .filter(appt => {
-        const apptDate = parseISO(appt.dateTime);
+        const apptDate = parse(appt.appointmentDate, 'yyyy-MM-dd', new Date());
         const now = new Date();
         // Check if the appointment is today and hasn't passed yet
-        return isToday(apptDate) && apptDate >= now;
+        if (!isToday(apptDate)) return false;
+        
+        const [hour, minute] = appt.appointmentTime.split(':').map(Number);
+        const apptTime = new Date();
+        apptTime.setHours(hour, minute, 0, 0);
+
+        return apptTime >= now;
     })
-    .sort((a, b) => parseISO(a.dateTime).getTime() - parseISO(b.dateTime).getTime());
+    .sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime));
 
   if (upcoming.length === 0) {
     return <p className="text-center text-muted-foreground py-8">No upcoming appointments for today.</p>;
@@ -40,7 +46,7 @@ export function UpcomingAppointments() {
           <p className="text-xs text-muted-foreground">{appt.studentYear} - {appt.studentSection}</p>
           <p className="text-sm text-muted-foreground mt-1">{appt.reason}</p>
           <p className="text-xs font-medium text-primary mt-1">
-            {format(parseISO(appt.dateTime), 'hh:mm a')}
+            {format(new Date(`1970-01-01T${appt.appointmentTime}`), 'hh:mm a')}
           </p>
         </div>
       ))}

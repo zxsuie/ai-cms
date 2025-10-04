@@ -8,7 +8,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
 type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink' | 'studentId'>;
-type AppointmentInsert = Omit<Appointment, 'id' | 'dateTime' | 'studentId'> & {dateTime: string};
+type AppointmentInsert = Omit<Appointment, 'id'>;
 
 // Helper function to convert a single object's keys from snake_case to camelCase
 const toCamelCase = (obj: any): any => {
@@ -17,7 +17,7 @@ const toCamelCase = (obj: any): any => {
 
   const newObj: {[key: string]: any} = {};
   for (const key in obj) {
-    const newKey = key.replace(/(_\w)/g, m => m[1].toUpperCase());
+    const newKey = key.replace(/_([a-z])/g, g => g[1].toUpperCase());
     newObj[newKey] = toCamelCase(obj[key]); // Recursively convert nested objects
   }
   return newObj;
@@ -126,7 +126,8 @@ export const db = {
     const {data, error} = await supabase
       .from('appointments')
       .select('*')
-      .order('date_time', {ascending: true});
+      .order('appointment_date', {ascending: true})
+      .order('appointment_time', {ascending: true});
     if (error) throw error;
     return toCamelCase(data) as Appointment[];
   },

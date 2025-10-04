@@ -5,7 +5,7 @@ import { useTransition, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
-import { format, addMinutes, subMinutes, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { scheduleAppointment } from '@/app/(app)/appointments/actions';
@@ -88,17 +88,8 @@ export function ScheduleAppointmentForm() {
 
   const isTimeSlotBooked = (time: string, date: Date, existingAppointments: Appointment[]): boolean => {
     if (!date) return false;
-    
-    const checkDateTimeString = `${format(date, 'yyyy-MM-dd')}T${time}:00`;
-    const checkTime = parseISO(checkDateTimeString);
-
-    const thirtyMinutesBefore = subMinutes(checkTime, 29);
-    const thirtyMinutesAfter = addMinutes(checkTime, 29);
-
-    return existingAppointments.some(appt => {
-        const apptTime = parseISO(appt.dateTime);
-        return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
-    });
+    const checkDate = format(date, 'yyyy-MM-dd');
+    return existingAppointments.some(appt => appt.appointmentDate === checkDate && appt.appointmentTime === time);
   }
 
   function onSubmit(data: AppointmentFormValues) {

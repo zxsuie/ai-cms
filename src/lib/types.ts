@@ -58,7 +58,8 @@ export type Appointment = {
   studentYear: string;
   studentSection: string;
   reason: string;
-  dateTime: string;
+  appointmentDate: string;
+  appointmentTime: string;
 };
 
 export type ActivityLog = {

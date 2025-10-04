@@ -4,7 +4,6 @@
 import type { z } from 'zod';
 import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
-import { addMinutes, subMinutes, parseISO } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { format } from 'date-fns';
 
@@ -12,37 +11,34 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
   try {
     const { studentName, studentYear, studentSection, reason, date, time } = data;
     
-    // Combine date and time into a simple, timezone-unaware ISO-like string.
-    const dateTimeString = `${format(date, 'yyyy-MM-dd')}T${time}:00`;
-    const newAppointmentDateTime = parseISO(dateTimeString);
+    const appointmentDate = format(date, 'yyyy-MM-dd');
+    const appointmentTime = time;
 
     // Check for overlapping appointments
     const existingAppointments = await db.getAppointments();
-    const thirtyMinutesBefore = subMinutes(newAppointmentDateTime, 29);
-    const thirtyMinutesAfter = addMinutes(newAppointmentDateTime, 29);
-
+    
     const conflict = existingAppointments.find(appt => {
-        const apptTime = parseISO(appt.dateTime); // Parse the stored string
-        return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
+        return appt.appointmentDate === appointmentDate && appt.appointmentTime === appointmentTime;
     });
 
     if (conflict) {
         return { success: false, message: 'This time slot is no longer available. Please select another time.' };
     }
 
-    // Pass the simple ISO string to the database layer.
     const newAppointment = await db.addAppointment({
       studentName,
       studentYear,
       studentSection,
       reason,
-      dateTime: dateTimeString, 
+      appointmentDate,
+      appointmentTime,
     });
 
     await db.addActivityLog('appointment_scheduled', { 
       studentName, 
       appointmentId: newAppointment.id,
-      dateTime: newAppointment.dateTime
+      date: newAppointment.appointmentDate,
+      time: newAppointment.appointmentTime
     });
     
     revalidatePath('/appointments');
