@@ -4,7 +4,7 @@
 import {Calendar} from '@/components/ui/calendar';
 import {useState, useMemo, useEffect} from 'react';
 import {useAppointments} from '@/hooks/use-appointments';
-import {isSameDay} from 'date-fns';
+import {isSameDay, parseISO, format} from 'date-fns';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {ScrollArea} from '../ui/scroll-area';
@@ -25,14 +25,14 @@ export function AppointmentCalendar() {
 
 
   const appointmentDates = useMemo(() => {
-    return appointments.map(appt => new Date(appt.dateTime));
+    return appointments.map(appt => parseISO(appt.dateTime));
   }, [appointments]);
 
   const appointmentsForSelectedDay = useMemo(() => {
     if (!selectedDate) return [];
     return appointments
-      .filter(appt => isSameDay(new Date(appt.dateTime), selectedDate))
-      .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+      .filter(appt => isSameDay(parseISO(appt.dateTime), selectedDate))
+      .sort((a, b) => parseISO(a.dateTime).getTime() - parseISO(b.dateTime).getTime());
   }, [selectedDate, appointments]);
 
   return (
@@ -100,12 +100,7 @@ export function AppointmentCalendar() {
                           <p className="text-sm text-muted-foreground mt-1">{appt.reason}</p>
                         </div>
                         <Badge variant="outline">
-                          {new Date(appt.dateTime).toLocaleTimeString('en-US', {
-                            timeZone: 'Asia/Manila',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
+                           {format(parseISO(appt.dateTime), 'hh:mm a')}
                         </Badge>
                       </div>
                     </div>

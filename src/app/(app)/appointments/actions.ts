@@ -4,34 +4,25 @@
 import type { z } from 'zod';
 import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
-import { addMinutes, subMinutes } from 'date-fns';
-import { fromZonedTime } from 'date-fns-tz';
+import { addMinutes, subMinutes, parseISO } from 'date-fns';
 import { revalidatePath } from 'next/cache';
+import { format } from 'date-fns';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
     const { studentName, studentYear, studentSection, reason, date, time } = data;
     
-    // This should always be 'Asia/Manila' as per user requirement.
-    const timeZone = 'Asia/Manila'; 
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    // Correctly interpret the client's date in the target timezone.
-    // This creates a Date object that represents the exact moment the user intended,
-    // regardless of the server's local timezone.
-    const zonedTime = fromZonedTime(date, timeZone);
-    zonedTime.setHours(hours, minutes, 0, 0);
+    // Combine date and time into a simple, timezone-unaware ISO-like string.
+    const dateTimeString = `${format(date, 'yyyy-MM-dd')}T${time}:00`;
+    const newAppointmentDateTime = parseISO(dateTimeString);
 
-    // Convert to ISO string (which will be in UTC 'Z' format) for database storage.
-    const dateTime = zonedTime.toISOString();
-
-    // Check for overlapping appointments using the correct zoned time
+    // Check for overlapping appointments
     const existingAppointments = await db.getAppointments();
-    const thirtyMinutesBefore = subMinutes(zonedTime, 29);
-    const thirtyMinutesAfter = addMinutes(zonedTime, 29);
+    const thirtyMinutesBefore = subMinutes(newAppointmentDateTime, 29);
+    const thirtyMinutesAfter = addMinutes(newAppointmentDateTime, 29);
 
     const conflict = existingAppointments.find(appt => {
-        const apptTime = new Date(appt.dateTime); // DB time is in UTC, new Date() correctly parses it.
+        const apptTime = parseISO(appt.dateTime); // Parse the stored string
         return apptTime >= thirtyMinutesBefore && apptTime <= thirtyMinutesAfter;
     });
 
@@ -39,13 +30,13 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
         return { success: false, message: 'This time slot is no longer available. Please select another time.' };
     }
 
-    // Pass the correct ISO string to the database layer.
+    // Pass the simple ISO string to the database layer.
     const newAppointment = await db.addAppointment({
       studentName,
       studentYear,
       studentSection,
       reason,
-      dateTime: dateTime, 
+      dateTime: dateTimeString, 
     });
 
     await db.addActivityLog('appointment_scheduled', { 
