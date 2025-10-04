@@ -6,12 +6,14 @@ import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
     const { studentName, studentYear, studentSection, reason, date, time } = data;
     
-    const appointmentDate = format(date, 'yyyy-MM-dd');
+    // Format the date correctly, ensuring it's not affected by timezone shifts.
+    const appointmentDate = formatInTimeZone(date, 'Asia/Manila', 'yyyy-MM-dd');
     const appointmentTime = time;
 
     // Check for overlapping appointments
