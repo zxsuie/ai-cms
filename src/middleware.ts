@@ -15,21 +15,21 @@ export async function middleware(request: NextRequest) {
   const isPublicPage = pathname.startsWith('/login');
   const isApiRoute = pathname.startsWith('/api');
 
-  // If user is logged in
-  if (session.isLoggedIn) {
-    // and tries to access a public page (like login) or the root, redirect to dashboard
-    if (isPublicPage || pathname === '/') {
+  // If user is logged in and tries to access a public page, redirect to dashboard
+  if (session.isLoggedIn && isPublicPage) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+  
+  // If user is not logged in and tries to access a protected page, redirect to login
+  if (!session.isLoggedIn && !isPublicPage && !isApiRoute) {
+     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // If user is on the root path, redirect based on login status
+  if (pathname === '/') {
+    if (session.isLoggedIn) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-  } 
-  // If user is not logged in
-  else {
-    // and is trying to access a protected page, redirect to login
-    if (!isPublicPage && !isApiRoute && pathname !== '/') {
-       return NextResponse.redirect(new URL('/login', request.url));
-    }
-    // and is on the root, redirect to login
-    if (pathname === '/') {
+    } else {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }

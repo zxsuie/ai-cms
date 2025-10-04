@@ -63,10 +63,9 @@ export default function LoginPage() {
         if (response.ok) {
           toast({
             title: 'Login Successful',
-            description: 'Welcome back!',
+            description: 'Redirecting to dashboard...',
           });
           router.push('/dashboard');
-          router.refresh(); // Important to refresh and get new session state
         } else {
           setError(result.message || 'An unexpected error occurred.');
         }
