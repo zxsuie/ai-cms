@@ -15,17 +15,17 @@ const GenerateAiReportInputSchema = z.object({
   reportType: z
     .enum(['weekly', 'monthly'])
     .describe('The type of report to generate (weekly or monthly).'),
-  visitData: z.string().describe('The student visit data in JSON format.'),
-  medicineData: z.string().describe('The medicine data in JSON format.'),
+  visitData: z.string().describe('A JSON string of student visit data.'),
+  medicineData: z.string().describe('A JSON string of medicine inventory data.'),
 });
 export type GenerateAiReportInput = z.infer<typeof GenerateAiReportInputSchema>;
 
 const GenerateAiReportOutputSchema = z.object({
-  summary: z.string().describe('A summary of the student visit data.'),
+  summary: z.string().describe('A summary of the student visit data, including the total number of visits.'),
   mostCommonSymptoms: z
     .string()
-    .describe('The most common symptoms reported.'),
-  medicinesDispensed: z.string().describe('A summary of medicines dispensed.'),
+    .describe('An analysis of the most common symptoms reported, based on the `symptoms` and `reason` fields.'),
+  medicinesDispensed: z.string().describe('A summary of medicines dispensed and stock levels.'),
 });
 export type GenerateAiReportOutput = z.infer<typeof GenerateAiReportOutputSchema>;
 
@@ -41,18 +41,25 @@ const prompt = ai.definePrompt({
   output: {
     schema: GenerateAiReportOutputSchema,
   },
-  prompt: `You are an AI assistant tasked with generating a report based on student visit data and medicine data.
+  prompt: `You are an AI data analyst for a school clinic. Your task is to generate a {{{reportType}}} report by analyzing the provided JSON data.
 
-  The report type is: {{{reportType}}}
+Analyze the 'Student Visit Data' to understand the clinic's activity. Pay close attention to the 'symptoms' and 'reason' fields to identify trends.
 
-  Student Visit Data:
-  {{visitData}}
+Based on your analysis, provide the following:
+1.  **Visit Summary**: A brief summary of the clinic's activity for the period, including the total number of student visits.
+2.  **Most Common Symptoms**: Identify and describe the most frequent symptoms or reasons for visits.
+3.  **Medicines Dispensed**: Summarize medicine-related activities, noting which medicines are used most.
 
-  Medicine Data:
-  {{medicineData}}
+Student Visit Data:
+\`\`\`json
+{{{visitData}}}
+\`\`\`
 
-  Generate a summary of the student visit data, including the number of visits, most common symptoms, and a summary of medicines dispensed.
-  `,
+Medicine Data:
+\`\`\`json
+{{{medicineData}}}
+\`\`\`
+`,
 });
 
 const generateAiReportFlow = ai.defineFlow(
@@ -62,17 +69,11 @@ const generateAiReportFlow = ai.defineFlow(
     outputSchema: GenerateAiReportOutputSchema,
   },
   async input => {
-    try {
-      // Parse the JSON strings into JavaScript objects
-      const visitData = JSON.parse(input.visitData);
-      const medicineData = JSON.parse(input.medicineData);
-
-      // Call the prompt with the parsed data
-      const {output} = await prompt({...input, visitData, medicineData});
-      return output!;
-    } catch (error: any) {
-      console.error('Error parsing JSON data or generating report:', error);
-      throw new Error(`Failed to generate AI report: ${error.message}`);
+    // The data is already in JSON string format, so we can pass it directly to the prompt.
+    const {output} = await prompt(input);
+    if (!output) {
+      throw new Error('The AI model failed to generate a report.');
     }
+    return output;
   }
 );
