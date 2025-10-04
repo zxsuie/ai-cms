@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,9 +22,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline flex items-center gap-2">
-            <LogIn className="h-6 w-6 text-primary" />
-            <span>iClinicMate Login</span>
+          <CardTitle className="text-2xl font-headline">
+            iClinicMate Login
           </CardTitle>
           <CardDescription>
             Click the button to access the clinical system.
