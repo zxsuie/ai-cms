@@ -1,3 +1,4 @@
+
 import { Suspense } from 'react';
 import { LogList } from '@/components/logs/log-list';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
