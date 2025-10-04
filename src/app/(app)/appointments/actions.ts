@@ -56,9 +56,8 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
       dateTime: newAppointment.dateTime
     });
     
-    // No longer needed due to real-time subscription
-    // revalidatePath('/appointments');
-    // revalidatePath('/logs');
+    revalidatePath('/appointments');
+    revalidatePath('/logs');
     
     return { success: true, message: 'Appointment scheduled successfully.' };
   } catch (error) {
