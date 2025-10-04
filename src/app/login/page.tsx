@@ -25,7 +25,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle className="text-2xl font-headline flex items-center gap-2">
             <LogIn className="h-6 w-6 text-primary" />
-            <span>Secure Login</span>
+            <span>iClinicMate Login</span>
           </CardTitle>
           <CardDescription>
             Click the button to access the clinical system.

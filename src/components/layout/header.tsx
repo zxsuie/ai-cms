@@ -12,7 +12,7 @@ export function Header() {
     '/appointments': 'Appointment Scheduling',
     '/logs': 'Activity Logs',
   };
-  const title = pageTitles[pathname] ?? 'Project Name';
+  const title = pageTitles[pathname] ?? 'iClinicMate';
   
   return (
     <header className="flex h-16 items-center border-b bg-card px-4 shrink-0 sm:px-6">
