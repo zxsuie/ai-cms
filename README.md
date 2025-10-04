@@ -1,3 +1,3 @@
-# AI-Powered Clinical Management System
+# AI-CMS
 
-A capstone project about clinical management system for schools.
+A capstone project
