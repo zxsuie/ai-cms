@@ -1,3 +1,4 @@
+
 'use client';
 
 import {useState, useTransition} from 'react';
@@ -58,6 +59,13 @@ const updateStockSchema = z.object({
     .min(0, 'Stock cannot be negative.'),
 });
 
+const dispenseSchema = z.object({
+  quantity: z.coerce
+    .number({invalid_type_error: 'Please enter a valid number.'})
+    .int()
+    .positive('Quantity must be greater than zero.'),
+});
+
 export function MedicineActions({
   medicine,
   isLowStock,
@@ -72,21 +80,34 @@ export function MedicineActions({
   const {toast} = useToast();
 
   const [isEditOpen, setEditOpen] = useState(false);
+  const [isDispenseOpen, setDispenseOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof updateStockSchema>>({
+  const editForm = useForm<z.infer<typeof updateStockSchema>>({
     resolver: zodResolver(updateStockSchema),
     defaultValues: {
       stock: medicine.stock,
     },
   });
 
-  const handleDispense = () => {
+  const dispenseForm = useForm<z.infer<typeof dispenseSchema>>({
+    resolver: zodResolver(dispenseSchema),
+    defaultValues: {
+      quantity: 1,
+    },
+  });
+
+  function onDispenseSubmit(values: z.infer<typeof dispenseSchema>) {
     startDispenseTransition(async () => {
-      const result = await dispenseMedicineAction(medicine.id);
+      const result = await dispenseMedicineAction({
+        id: medicine.id,
+        quantity: values.quantity,
+      });
       if (result.success) {
         toast({
-          title: `Dispensed ${medicine.name}`,
+          title: 'Success',
+          description: result.message,
         });
+        setDispenseOpen(false);
       } else {
         toast({
           variant: 'destructive',
@@ -177,14 +198,13 @@ export function MedicineActions({
         <Button
           variant="outline"
           size="sm"
-          onClick={handleDispense}
-          disabled={isDispensePending || medicine.stock === 0}
+          onClick={() => {
+            dispenseForm.reset({ quantity: 1 });
+            setDispenseOpen(true);
+          }}
+          disabled={medicine.stock === 0}
         >
-          {isDispensePending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MinusCircle className="h-4 w-4" />
-          )}
+          <MinusCircle className="h-4 w-4" />
           <span className="ml-2 hidden sm:inline">Dispense</span>
         </Button>
         <Button
@@ -192,7 +212,7 @@ export function MedicineActions({
           size="icon"
           className="h-9 w-9"
           onClick={() => {
-            form.reset({stock: medicine.stock});
+            editForm.reset({stock: medicine.stock});
             setEditOpen(true);
           }}
         >
@@ -233,13 +253,13 @@ export function MedicineActions({
               Update the current stock quantity for this medicine.
             </DialogDescription>
           </DialogHeader>
-          <Form {...form}>
+          <Form {...editForm}>
             <form
-              onSubmit={form.handleSubmit(onEditSubmit)}
+              onSubmit={editForm.handleSubmit(onEditSubmit)}
               className="space-y-4 py-4"
             >
               <FormField
-                control={form.control}
+                control={editForm.control}
                 name="stock"
                 render={({field}) => (
                   <FormItem>
@@ -260,6 +280,48 @@ export function MedicineActions({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   Save Changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isDispenseOpen} onOpenChange={setDispenseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dispense {medicine.name}</DialogTitle>
+            <DialogDescription>
+              Enter the quantity to dispense. Current stock: {medicine.stock}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...dispenseForm}>
+            <form
+              onSubmit={dispenseForm.handleSubmit(onDispenseSubmit)}
+              className="space-y-4 py-4"
+            >
+              <FormField
+                control={dispenseForm.control}
+                name="quantity"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Quantity</FormLabel>
+                    <FormControl>
+                      <Input type="number" autoFocus {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button type="submit" disabled={isDispensePending}>
+                  {isDispensePending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Confirm Dispense
                 </Button>
               </DialogFooter>
             </form>

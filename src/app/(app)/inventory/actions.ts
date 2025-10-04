@@ -11,6 +11,14 @@ const updateStockSchema = z.object({
   stock: z.number().min(0, 'Stock cannot be negative.'),
 });
 
+const dispenseMedicineSchema = z.object({
+  id: z.string().uuid(),
+  quantity: z.coerce
+    .number({invalid_type_error: 'Please enter a valid number.'})
+    .int()
+    .positive('Quantity must be greater than zero.'),
+});
+
 export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>) {
   try {
     const newMedicine = await db.addMedicine(data);
@@ -28,31 +36,40 @@ export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>)
   }
 }
 
-export async function dispenseMedicineAction(medicineId: string) {
+export async function dispenseMedicineAction(data: z.infer<typeof dispenseMedicineSchema>) {
+  const validated = dispenseMedicineSchema.safeParse(data);
+  if (!validated.success) {
+    return {success: false, message: 'Invalid input.'};
+  }
+
   try {
-    const medicine = await db.getMedicineById(medicineId);
+    const {id, quantity} = validated.data;
+    const medicine = await db.getMedicineById(id);
+
     if (!medicine) {
       return { success: false, message: 'Medicine not found.' };
     }
-    if (medicine.stock <= 0) {
-      return { success: false, message: 'Medicine is out of stock.' };
+    if (medicine.stock < quantity) {
+      return { success: false, message: `Not enough stock. Only ${medicine.stock} items available.` };
     }
 
-    const success = await db.dispenseMedicine(medicineId);
+    const newStock = medicine.stock - quantity;
+    const success = await db.updateMedicineStock(id, newStock);
 
     if (success) {
       await db.addActivityLog('medicine_dispensed', { 
         medicineId: medicine.id, 
         medicineName: medicine.name,
-        newStock: medicine.stock - 1,
+        dispensedQuantity: quantity,
+        newStock: newStock,
       });
       revalidatePath('/inventory');
       revalidatePath('/logs');
-      return {success: true, message: 'Medicine dispensed.'};
+      return {success: true, message: `Dispensed ${quantity} of ${medicine.name}.`};
     }
     return {
       success: false,
-      message: 'Failed to dispense: Out of stock or not found.',
+      message: 'Failed to dispense medicine.',
     };
   } catch (error) {
     console.error('Error dispensing medicine:', error)

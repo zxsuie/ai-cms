@@ -101,13 +101,14 @@ export const db = {
     return !error;
   },
 
-  dispenseMedicine: async (medicineId: string): Promise<boolean> => {
-    const {data, error} = await supabase.rpc('dispense_medicine', {med_id: medicineId});
-    if (error) {
-      console.error('Error in dispense_medicine RPC:', error);
+  dispenseMedicine: async (medicineId: string, quantity: number): Promise<boolean> => {
+     const medicine = await db.getMedicineById(medicineId);
+    if (!medicine || medicine.stock < quantity) {
       return false;
-    };
-    return data;
+    }
+    const newStock = medicine.stock - quantity;
+    const { error } = await supabase.from('medicines').update({ stock: newStock }).eq('id', medicineId);
+    return !error;
   },
 
   // Refills
