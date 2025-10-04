@@ -32,7 +32,6 @@ export function VisitLogForm() {
     resolver: zodResolver(logVisitSchema),
     defaultValues: {
       studentName: '',
-      studentId: '',
       studentYear: '',
       studentSection: '',
       symptoms: '',
@@ -103,19 +102,6 @@ export function VisitLogForm() {
                   <FormLabel>Student Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="studentId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Student ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. S123456" {...field} maxLength={8} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,3 +1,4 @@
+
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert} from '@/lib/types';
 
@@ -6,8 +7,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink'>;
-type AppointmentInsert = Omit<Appointment, 'id' | 'dateTime'> & {dateTime: string};
+type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink' | 'studentId'>;
+type AppointmentInsert = Omit<Appointment, 'id' | 'dateTime' | 'studentId'> & {dateTime: string};
 
 // Helper function to convert a single object's keys from snake_case to camelCase
 const toCamelCase = (obj: any): any => {

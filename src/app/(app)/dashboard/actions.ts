@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -33,7 +34,6 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
     
     await db.addActivityLog('visit_logged', { 
       studentName: newVisit.studentName, 
-      studentId: newVisit.studentId,
       visitId: newVisit.id 
     });
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -59,10 +60,6 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
             <div className="grid grid-cols-2 gap-2">
               <strong>Student Name:</strong>
               <span>{visit.studentName}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <strong>Student ID:</strong>
-              <span>{visit.studentId}</span>
             </div>
              <div className="grid grid-cols-2 gap-2">
               <strong>Year & Section:</strong>

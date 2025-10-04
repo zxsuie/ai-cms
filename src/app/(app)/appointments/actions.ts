@@ -10,7 +10,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
-    const { studentName, studentId, studentYear, studentSection, reason, date, time } = data;
+    const { studentName, studentYear, studentSection, reason, date, time } = data;
     
     // This should always be 'Asia/Manila' as per user requirement.
     const timeZone = 'Asia/Manila'; 
@@ -42,7 +42,6 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
     // Pass the correct ISO string to the database layer.
     const newAppointment = await db.addAppointment({
       studentName,
-      studentId,
       studentYear,
       studentSection,
       reason,
@@ -51,7 +50,6 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
 
     await db.addActivityLog('appointment_scheduled', { 
       studentName, 
-      studentId,
       appointmentId: newAppointment.id,
       dateTime: newAppointment.dateTime
     });

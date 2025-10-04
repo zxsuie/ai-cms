@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/db';
 import {
   Table,
@@ -34,7 +35,6 @@ export async function RecentVisits() {
             <TableRow key={visit.id}>
               <TableCell>
                 <div className="font-medium">{visit.studentName}</div>
-                <div className="text-sm text-muted-foreground">{visit.studentId}</div>
                 <div className="text-xs text-muted-foreground">{visit.studentYear} - {visit.studentSection}</div>
               </TableCell>
               <TableCell>

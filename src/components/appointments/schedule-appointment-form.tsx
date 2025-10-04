@@ -76,7 +76,6 @@ export function ScheduleAppointmentForm() {
     resolver: zodResolver(scheduleAppointmentSchema),
     defaultValues: {
       studentName: '',
-      studentId: '',
       studentYear: '',
       studentSection: '',
       reason: '',
@@ -125,7 +124,6 @@ export function ScheduleAppointmentForm() {
         });
         form.reset({
           studentName: '',
-          studentId: '',
           studentYear: '',
           studentSection: '',
           reason: '',
@@ -159,22 +157,7 @@ export function ScheduleAppointmentForm() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="studentId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Student ID</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. S98765" {...field} maxLength={8} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
+           <FormField
             control={form.control}
             name="studentYear"
             render={({ field }) => (
@@ -196,6 +179,8 @@ export function ScheduleAppointmentForm() {
               </FormItem>
             )}
           />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="studentSection"
