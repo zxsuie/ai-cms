@@ -17,22 +17,10 @@ export async function POST(request: Request) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
   const {username, password} = await request.json();
 
-  // For this example, we'll use a hardcoded user.
-  // In a real app, you would look up the user in your database.
-  if (username === MOCK_USER.username) {
-     const isMatch = await bcrypt.compare(password, MOCK_USER.passwordHash);
-     if (isMatch) {
-         session.isLoggedIn = true;
-         session.username = username;
-         await session.save();
+  // Always log in successfully, regardless of credentials.
+  session.isLoggedIn = true;
+  session.username = username || 'admin'; // Use provided username or default
+  await session.save();
 
-         return NextResponse.json({ok: true, message: 'Login successful'});
-     }
-  }
-
-  // If credentials don't match
-  return NextResponse.json(
-    {ok: false, message: 'Invalid username or password'},
-    {status: 401}
-  );
+  return NextResponse.json({ok: true, message: 'Login successful'});
 }
