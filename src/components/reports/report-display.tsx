@@ -1,7 +1,8 @@
 import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Pill, Activity, Syringe } from "lucide-react";
+import { FileText, Pill, Activity, Syringe, ListChecks } from "lucide-react";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 
 interface ReportDisplayProps {
   report: GenerateAiReportOutput;
@@ -33,35 +34,42 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <Card>
-          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="font-headline text-lg">Visit Summary</CardTitle>
             <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Activity className="h-6 w-6" />
             </div>
-            <CardTitle className="font-headline text-lg">Visit Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{report.summary}</p>
+             <div className="text-4xl font-bold">{report.totalVisits}</div>
+            <p className="text-muted-foreground mt-2">{report.summaryText}</p>
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-              <div className="p-3 rounded-full bg-accent/10 text-accent">
-                <Pill className="h-6 w-6" />
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-headline text-lg">Most Common Symptoms</CardTitle>
+              <div className="p-3 rounded-full bg-accent/10 text-accent">
+                <ListChecks className="h-6 w-6" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{report.mostCommonSymptoms}</p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {report.mostCommonSymptoms.map((symptom, index) => (
+                    <Badge key={index} variant="secondary" className="text-base font-normal">
+                        {symptom}
+                    </Badge>
+                ))}
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-               <div className="p-3 rounded-full bg-destructive/10 text-destructive">
-                <Syringe className="h-6 w-6" />
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-headline text-lg">Medicines Dispensed</CardTitle>
+               <div className="p-3 rounded-full bg-destructive/10 text-destructive">
+                <Pill className="h-6 w-6" />
+              </div>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{report.medicinesDispensed}</p>

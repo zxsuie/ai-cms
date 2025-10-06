@@ -21,10 +21,9 @@ const GenerateAiReportInputSchema = z.object({
 export type GenerateAiReportInput = z.infer<typeof GenerateAiReportInputSchema>;
 
 const GenerateAiReportOutputSchema = z.object({
-  summary: z.string().describe('A summary of the student visit data, including the total number of visits.'),
-  mostCommonSymptoms: z
-    .string()
-    .describe('An analysis of the most common symptoms reported, based on the `symptoms` and `reason` fields.'),
+  totalVisits: z.number().describe('The total number of student visits for the period.'),
+  summaryText: z.string().describe('A brief narrative summary of the clinic activity.'),
+  mostCommonSymptoms: z.array(z.string()).describe('A list of the most common symptoms reported.'),
   medicinesDispensed: z.string().describe('A summary of medicines dispensed and stock levels.'),
 });
 export type GenerateAiReportOutput = z.infer<typeof GenerateAiReportOutputSchema>;
@@ -45,10 +44,11 @@ const prompt = ai.definePrompt({
 
 Analyze the 'Student Visit Data' to understand the clinic's activity. Pay close attention to the 'symptoms' and 'reason' fields to identify trends.
 
-Based on your analysis, provide the following:
-1.  **Visit Summary**: A brief summary of the clinic's activity for the period, including the total number of student visits.
-2.  **Most Common Symptoms**: Identify and describe the most frequent symptoms or reasons for visits.
-3.  **Medicines Dispensed**: Summarize medicine-related activities, noting which medicines are used most.
+Based on your analysis, provide the following structured data:
+1.  **totalVisits**: Calculate the exact total number of student visits from the data.
+2.  **summaryText**: Write a brief narrative summary of the clinic's activity for the period.
+3.  **mostCommonSymptoms**: Identify and return a JavaScript array of the most frequent symptoms or reasons for visits (e.g., ["Headache", "Stomach ache", "Common Cold"]).
+4.  **medicinesDispensed**: Summarize medicine-related activities, noting which medicines are used most.
 
 Student Visit Data:
 \`\`\`json
