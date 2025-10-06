@@ -22,9 +22,9 @@ export type GenerateAiReportInput = z.infer<typeof GenerateAiReportInputSchema>;
 
 const GenerateAiReportOutputSchema = z.object({
   totalVisits: z.number().describe('The total number of student visits for the period.'),
-  summaryText: z.string().describe('A brief narrative summary of the clinic activity.'),
+  summaryText: z.string().describe('A brief narrative summary of the clinic activity. Use Markdown for bolding key numbers and trends (e.g., **45 visits**).'),
   mostCommonSymptoms: z.array(z.string()).describe('A list of the most common symptoms reported.'),
-  medicinesDispensed: z.string().describe('A summary of medicines dispensed and stock levels.'),
+  medicinesDispensed: z.string().describe('A summary of medicines dispensed and stock levels. Use Markdown for bolding key medicine names and quantities (e.g., **Paracetamol (50)**).'),
 });
 export type GenerateAiReportOutput = z.infer<typeof GenerateAiReportOutputSchema>;
 
@@ -46,9 +46,9 @@ Analyze the 'Student Visit Data' to understand the clinic's activity. Pay close 
 
 Based on your analysis, provide the following structured data:
 1.  **totalVisits**: Calculate the exact total number of student visits from the data.
-2.  **summaryText**: Write a brief narrative summary of the clinic's activity for the period.
+2.  **summaryText**: Write a brief narrative summary of the clinic's activity. Use Markdown to bold key numbers, trends, or insights (e.g., "There were **45 visits** this week, a **15% increase** from the previous period.").
 3.  **mostCommonSymptoms**: Identify and return a JavaScript array of the most frequent symptoms or reasons for visits (e.g., ["Headache", "Stomach ache", "Common Cold"]).
-4.  **medicinesDispensed**: Summarize medicine-related activities, noting which medicines are used most.
+4.  **medicinesDispensed**: Summarize medicine-related activities, noting which medicines are used most. Use Markdown to bold medicine names and quantities dispensed (e.g., "The most dispensed medicine was **Paracetamol (50 units)**, followed by **Ibuprofen (30 units)**.").
 
 Student Visit Data:
 \`\`\`json

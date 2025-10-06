@@ -1,8 +1,9 @@
 import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Pill, Activity, Syringe, ListChecks } from "lucide-react";
+import { FileText, Pill, Activity, ListChecks } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { Markdown } from "../ui/markdown";
 
 interface ReportDisplayProps {
   report: GenerateAiReportOutput;
@@ -42,7 +43,9 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
           </CardHeader>
           <CardContent>
              <div className="text-4xl font-bold">{report.totalVisits}</div>
-            <p className="text-muted-foreground mt-2">{report.summaryText}</p>
+            <p className="text-muted-foreground mt-2">
+                <Markdown text={report.summaryText} />
+            </p>
           </CardContent>
         </Card>
 
@@ -72,7 +75,9 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{report.medicinesDispensed}</p>
+              <p className="text-muted-foreground">
+                <Markdown text={report.medicinesDispensed} />
+              </p>
             </CardContent>
           </Card>
         </div>
