@@ -89,7 +89,7 @@ export const db = {
     const { data, error, count } = await supabase
       .from('medicines')
       .select('*', { count: 'exact', head: true })
-      .filter('stock', 'lt', 'threshold');
+      .ltc('stock', 'threshold');
 
     if (error) {
       console.error('Error fetching low stock count:', error);
