@@ -1,6 +1,7 @@
 
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert} from '@/lib/types';
+import { subDays, formatISO } from 'date-fns';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -48,6 +49,20 @@ export const db = {
     if (error) throw error;
     return toCamelCase(data) as StudentVisit[];
   },
+   getVisitsLast7Days: async (): Promise<StudentVisit[]> => {
+    const sevenDaysAgo = formatISO(subDays(new Date(), 7));
+    const { data, error } = await supabase
+      .from('visits')
+      .select('*')
+      .gte('timestamp', sevenDaysAgo)
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching recent visits:', error);
+      return [];
+    }
+    return toCamelCase(data) as StudentVisit[];
+  },
   
   addVisit: async (visitData: StudentVisitInsert): Promise<StudentVisit> => {
     const {data, error} = await supabase.from('visits').insert(toSnakeCase(visitData)).select().single();
@@ -68,6 +83,19 @@ export const db = {
     const {data, error} = await supabase.from('medicines').select('*').order('name');
     if (error) throw error;
     return toCamelCase(data) as Medicine[];
+  },
+  
+  getLowStockCount: async (): Promise<number> => {
+    const { data, error, count } = await supabase
+      .from('medicines')
+      .select('*', { count: 'exact', head: true })
+      .filter('stock', 'lt', 'threshold');
+
+    if (error) {
+      console.error('Error fetching low stock count:', error);
+      return 0;
+    }
+    return count ?? 0;
   },
   
   getMedicineById: async (medicineId: string): Promise<Medicine | null> => {

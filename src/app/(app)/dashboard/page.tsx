@@ -1,21 +1,63 @@
-import { VisitLogForm } from '@/components/dashboard/visit-log-form';
-import { RecentVisits } from '@/components/dashboard/recent-visits';
+
 import { Suspense } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StatCards } from '@/components/dashboard/stat-cards';
+import { VisitTrendsChart } from '@/components/dashboard/visit-trends-chart';
+import { RecentVisits } from '@/components/dashboard/recent-visits';
+import { UpcomingAppointments } from '@/components/appointments/upcoming-appointments';
+import { SymptomDistributionChart } from '@/components/dashboard/symptom-distribution-chart';
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-headline font-bold tracking-tight">Student Visit Logging</h1>
-        <p className="text-muted-foreground">Log new student visits and view recent entries.</p>
+        <h1 className="text-3xl font-headline font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">An overview of the clinic's activities and key metrics.</p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <VisitLogForm />
+      
+      {/* Stat Cards */}
+      <Suspense fallback={
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
+      }>
+        <StatCards />
+      </Suspense>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Recent Visit Trends</CardTitle>
+                    <CardDescription>Number of student visits over the past 7 days.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <Suspense fallback={<Skeleton className="h-80 w-full" />}>
+                        <VisitTrendsChart />
+                    </Suspense>
+                </CardContent>
+            </Card>
+        </div>
+        <div className="lg:col-span-1">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Common Symptoms</CardTitle>
+                    <CardDescription>Distribution of symptoms from recent visits.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Suspense fallback={<Skeleton className="h-80 w-full" />}>
+                        <SymptomDistributionChart />
+                    </Suspense>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+         <div className="lg:col-span-2">
            <Card>
             <CardHeader>
               <CardTitle>Recent Visits</CardTitle>
@@ -28,7 +70,21 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+        <div className="lg:col-span-1">
+            <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Appointments</CardTitle>
+              <CardDescription>Next scheduled appointments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                <UpcomingAppointments />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
     </div>
   );
 }
