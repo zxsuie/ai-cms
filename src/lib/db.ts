@@ -70,6 +70,14 @@ export const db = {
     return toCamelCase(data) as StudentVisit;
   },
 
+  updateVisitAiContent: async (visitId: string, aiSuggestion: string, excuseLetterText: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('visits')
+      .update({ ai_suggestion: aiSuggestion, excuse_letter_text: excuseLetterText })
+      .eq('id', visitId);
+    return !error;
+  },
+
   addReleaseFormLink: async (visitId: string, link: string): Promise<boolean> => {
     const {error} = await supabase
       .from('visits')

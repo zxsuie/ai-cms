@@ -29,27 +29,52 @@ export async function getAiSymptomSuggestion(input: { symptoms: string }) {
 
 export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
   try {
-    const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
-    const aiSuggestion = aiResult.suggestions || 'No suggestion available.';
-
-    // Generate excuse letter text automatically
-    const excuseSlipResult = await generateExcuseSlip({
-      studentName: data.studentName,
-      visitDate: format(new Date(), 'PPP'),
-      symptoms: data.symptoms,
-      reason: data.reason,
+    // 1. Log the basic visit first.
+    const newVisit = await db.addVisit({ 
+      ...data, 
+      aiSuggestion: 'Generating...', 
+      excuseLetterText: 'Generating...' 
     });
-    const excuseLetterText = excuseSlipResult.excuseSlipText;
 
-    const newVisit = await db.addVisit({ ...data, aiSuggestion, excuseLetterText });
-    
+    // 2. Add to activity log immediately.
     await db.addActivityLog('visit_logged', { 
       studentName: newVisit.studentName, 
       visitId: newVisit.id 
     });
 
+    // Revalidate paths so the UI updates with the basic info.
     revalidatePath('/dashboard');
     revalidatePath('/logs');
+
+    // 3. Try to get AI content and update the visit record.
+    let aiSuggestion = 'No suggestion available.';
+    let excuseLetterText = 'Could not generate excuse slip.';
+
+    try {
+        const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
+        aiSuggestion = aiResult.suggestions || 'No suggestion available.';
+    } catch (e) {
+        console.error("AI suggestion failed:", e);
+    }
+
+    try {
+        const excuseSlipResult = await generateExcuseSlip({
+            studentName: data.studentName,
+            visitDate: format(new Date(), 'PPP'),
+            symptoms: data.symptoms,
+            reason: data.reason,
+        });
+        excuseLetterText = excuseSlipResult.excuseSlipText;
+    } catch (e) {
+        console.error("Excuse slip generation failed:", e);
+    }
+    
+    // 4. Update the visit with AI content.
+    await db.updateVisitAiContent(newVisit.id, aiSuggestion, excuseLetterText);
+    
+    // Revalidate again to show the AI content.
+    revalidatePath('/dashboard');
+
     return { success: true, message: 'Visit logged successfully.', visit: newVisit };
   } catch (error) {
     console.error('Failed to log visit:', error);
