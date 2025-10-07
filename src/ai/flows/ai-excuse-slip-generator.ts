@@ -21,7 +21,7 @@ const GenerateExcuseSlipInputSchema = z.object({
 export type GenerateExcuseSlipInput = z.infer<typeof GenerateExcuseSlipInputSchema>;
 
 const GenerateExcuseSlipOutputSchema = z.object({
-  excuseSlipText: z.string().describe('The fully-formatted text for a student excuse slip, including date, salutation, body, and closing. Use Markdown for formatting if needed, for example, for the clinic name at the top.'),
+  excuseSlipText: z.string().describe('The fully-formatted text for a student excuse slip, including date, salutation, body, and closing. Use Markdown for formatting and ensure newlines (\\n) separate paragraphs.'),
 });
 export type GenerateExcuseSlipOutput = z.infer<typeof GenerateExcuseSlipOutputSchema>;
 
@@ -35,35 +35,23 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateExcuseSlipOutputSchema},
   prompt: `You are an AI assistant for a school nurse named "Nurse Manuel". Your task is to write a formal, context-rich student excuse slip based on the provided visit details. The tone should be professional and suitable for a school environment.
 
-**Instructions:**
-1.  **Address:** Start with a formal salutation like "To Whom It May Concern," or "Dear Teacher/Adviser,".
-2.  **Body Paragraph 1 (Certification):** State clearly that the student visited the clinic. Include the student's full name, the date of the visit, and the reason. Combine the provided 'reason' and 'symptoms' into a professional-sounding description. For example, if the reason is "Felt dizzy" and symptoms are "headache, nausea", the letter could say "...due to experiencing dizziness, headache, and nausea."
-3.  **Body Paragraph 2 (Action/Recommendation):** Briefly explain the assessment or action taken. For instance, "Upon assessment, the student was advised to rest and was monitored in the clinic." or "The student was given appropriate first aid and allowed to return to class after observation."
-4.  **Closing:** Politely request that the student's absence from class during that time be excused.
-5.  **Signature:** End with "Sincerely," followed by "Nurse Manuel" and then "School Clinic".
-6.  **Formatting**: Use Markdown for bolding key information like the student's name, but do not use any other complex markdown.
+**IMPORTANT INSTRUCTIONS:**
+*   **Use Newlines:** You MUST use newline characters (\\n) to separate paragraphs and lines (e.g., between the salutation, body paragraphs, and closing).
+*   **Use Markdown for Bolding:** Use double asterisks (**) to bold key information like the student's name and the date.
+
+**Structure:**
+1.  **Salutation:** "To Whom It May Concern," followed by a double newline (\\n\\n).
+2.  **Body Paragraph 1 (Certification):** State clearly that the student visited the clinic. Include the student's full name, the date of the visit, and the reason. Combine the provided 'reason' and 'symptoms' into a professional-sounding description. (e.g., "...due to experiencing dizziness and a headache."). End with a double newline (\\n\\n).
+3.  **Body Paragraph 2 (Action/Recommendation):** Briefly explain the assessment or action taken. (e.g., "Upon assessment, the student was advised to rest..."). End with a double newline (\\n\\n).
+4.  **Closing Paragraph:** Politely request that the student's absence be excused. (e.g., "Please excuse the student's absence from class..."). End with a double newline (\\n\\n).
+5.  **Signature:** End with "Sincerely," then a newline (\\n), then "Nurse Manuel", then a final newline (\\n) and "School Clinic".
 
 **Input Data:**
 *   Student Name: {{{studentName}}}
 *   Visit Date: {{{visitDate}}}
 *   Symptoms Reported: {{{symptoms}}}
 *   Reason for Visit: {{{reason}}}
-
----
-
-**Example Output Format:**
-
-To Whom It May Concern,
-
-This is to certify that **{{{studentName}}}** visited the school clinic on **{{{visitDate}}}** due to [professional description of reason and symptoms].
-
-Upon assessment, the student was [action taken, e.g., advised to rest in the clinic]. He/She is now cleared to return to class.
-
-Please excuse the student's absence from class during this time. Thank you for your understanding.
-
-Sincerely,
-Nurse Manuel
-School Clinic`,
+`,
 });
 
 const generateExcuseSlipFlow = ai.defineFlow(

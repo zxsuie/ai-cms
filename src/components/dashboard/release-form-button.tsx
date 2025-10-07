@@ -148,7 +148,7 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                 {excuseSlip ? (
                     isEditing ? (
                         <Button onClick={handleSaveChanges} disabled={isPending}>
-                            <Save className="mr-2 h-4 w-4" />
+                            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Save Changes
                         </Button>
                     ) : (
@@ -158,7 +158,7 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                                 Edit
                             </Button>
                             <Button onClick={handleGenerate} disabled={isPending}>
-                                <Bot className="mr-2 h-4 w-4" />
+                                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
                                 Regenerate
                             </Button>
                         </>
