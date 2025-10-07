@@ -26,3 +26,13 @@ export async function generateReportAction(reportType: ReportType) {
     return { success: false, error: "Failed to generate AI report." };
   }
 }
+
+export async function getAllLogsAction() {
+  try {
+    const logs = await db.getActivityLogs();
+    return { success: true, logs };
+  } catch (error) {
+    console.error("Failed to fetch logs:", error);
+    return { success: false, error: "Failed to fetch activity logs." };
+  }
+}

@@ -1,9 +1,18 @@
+
+'use client';
+
+import { useState, useTransition } from 'react';
 import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Pill, Activity, ListChecks } from "lucide-react";
+import { FileText, Pill, Activity, ListChecks, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Markdown } from "../ui/markdown";
+import { useToast } from '@/hooks/use-toast';
+import { generatePdfReport } from '@/lib/generate-pdf-report';
+import { getAllLogsAction } from '@/app/(app)/reports/actions';
+import { ActivityLog } from '@/lib/types';
+
 
 interface ReportDisplayProps {
   report: GenerateAiReportOutput;
@@ -11,9 +20,40 @@ interface ReportDisplayProps {
 }
 
 export function ReportDisplay({ report, type }: ReportDisplayProps) {
+  const [isExporting, startExportTransition] = useTransition();
+  const { toast } = useToast();
+
   if (!type) {
     return null;
   }
+  
+  const handleExport = () => {
+    startExportTransition(async () => {
+      try {
+        // Fetch all logs for the detailed report
+        const logsResult = await getAllLogsAction();
+        
+        if (!logsResult.success || !logsResult.logs) {
+            throw new Error(logsResult.error || 'Failed to fetch logs for PDF report.');
+        }
+
+        await generatePdfReport(report, type, logsResult.logs);
+        
+        toast({
+          title: "✅ Success",
+          description: "Detailed Report successfully exported as PDF!",
+        });
+
+      } catch (error) {
+        console.error("PDF Export failed:", error);
+        toast({
+          variant: "destructive",
+          title: "❌ Export Failed",
+          description: "Could not generate the PDF report.",
+        });
+      }
+    });
+  };
   
   return (
     <Card className="animate-in fade-in-50 duration-500">
@@ -27,8 +67,12 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
                     AI-generated summary of clinic activity.
                 </CardDescription>
             </div>
-            <Button variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
+            <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+                {isExporting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <FileText className="mr-2 h-4 w-4" />
+                )}
                 Export as PDF
             </Button>
         </div>
