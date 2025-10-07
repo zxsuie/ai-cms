@@ -2,12 +2,36 @@
 'use client';
 
 import * as React from 'react';
-import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip } from 'recharts';
+import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, PieLabelRenderProps } from 'recharts';
 import { useVisitsLast7Days } from '@/hooks/use-visits-last-7-days';
 import { useTheme } from 'next-themes';
 import { themes } from '@/themes';
 
 const COLORS = ['#3F51B5', '#FF9800', '#4CAF50', '#F44336', '#9C27B0'];
+
+const RADIAN = Math.PI / 180;
+const MAX_LABEL_LENGTH = 20;
+
+const renderCustomizedLabel = (props: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  let displayName = name;
+  if (name.length > MAX_LABEL_LENGTH) {
+    displayName = `${name.substring(0, MAX_LABEL_LENGTH)}...`;
+  }
+  
+  const labelText = `${displayName}: ${(percent * 100).toFixed(0)}%`;
+  
+  return (
+    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12}>
+      {labelText}
+    </text>
+  );
+};
+
 
 export function SymptomDistributionChart() {
   const { symptomCounts } = useVisitsLast7Days();
@@ -47,8 +71,8 @@ export function SymptomDistributionChart() {
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={80}
+            label={renderCustomizedLabel}
+            outerRadius={100}
             fill="#8884d8"
             dataKey="value"
             nameKey="name"
