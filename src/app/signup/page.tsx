@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useActionState, useFormStatus } from 'react';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { signup } from '@/app/signup/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,7 +61,7 @@ export default function SignupPage() {
                     <CardHeader>
                     <CardTitle className="text-2xl font-headline">
                         Create an Account
-                    </CardTitle>
+                    </Title>
                     <CardDescription>
                         Enter your details to create a new admin account.
                     </CardDescription>
