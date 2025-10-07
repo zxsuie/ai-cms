@@ -142,8 +142,8 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               </ScrollArea>
             )}
           </div>
-          <DialogFooter className="mt-4 shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-            <div className="flex gap-2 justify-end sm:justify-start">
+          <DialogFooter className="mt-4 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+            <div className="flex items-center gap-2 justify-end sm:justify-start">
                {excuseSlip && !isEditing && (
                  <>
                    <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
@@ -157,18 +157,23 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                  </>
                )}
             </div>
-            <div className="flex gap-2 justify-end">
-                <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-                </DialogClose>
+            <div className="flex items-center gap-2 justify-end">
                 {excuseSlip ? (
                     isEditing ? (
-                        <Button onClick={handleSaveChanges} disabled={isPending}>
-                            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Save
-                        </Button>
+                        <>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={handleSaveChanges} disabled={isPending}>
+                                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                Save
+                            </Button>
+                        </>
                     ) : (
                         <>
+                            <DialogClose asChild>
+                                <Button variant="outline">Close</Button>
+                            </DialogClose>
                             <Button variant="secondary" onClick={() => setIsEditing(true)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -180,14 +185,19 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                         </>
                     )
                 ) : (
-                    <Button onClick={handleGenerate} disabled={isPending}>
-                    {isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Bot className="mr-2 h-4 w-4" />
-                    )}
-                    Generate Excuse Slip
-                    </Button>
+                    <>
+                        <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                        </DialogClose>
+                        <Button onClick={handleGenerate} disabled={isPending}>
+                        {isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Bot className="mr-2 h-4 w-4" />
+                        )}
+                        Generate Excuse Slip
+                        </Button>
+                    </>
                 )}
             </div>
           </DialogFooter>
