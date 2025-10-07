@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -142,8 +143,8 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               </ScrollArea>
             )}
           </div>
-          <DialogFooter className="mt-4 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
-            <div className="flex items-center gap-2 justify-end sm:justify-start">
+          <DialogFooter className="mt-4 shrink-0 flex flex-wrap gap-2 sm:flex-nowrap sm:justify-between">
+            <div className="flex items-center gap-2 justify-start">
                {excuseSlip && !isEditing && (
                  <>
                    <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
