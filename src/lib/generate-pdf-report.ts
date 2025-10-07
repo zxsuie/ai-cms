@@ -2,15 +2,24 @@
 'use client';
 
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; // Ensure you have this import for autoTable
-import { format } from 'date-fns';
+import 'jspdf-autotable'; 
+import { format, parseISO } from 'date-fns';
 import type { GenerateAiReportOutput } from '@/ai/flows/ai-report-generator';
-import type { ActivityLog } from './types';
+import type { ActivityLog, StudentVisit, Appointment } from './types';
 
 // Extend jsPDF with the autoTable method
 interface jsPDFWithAutoTable extends jsPDF {
-  autoTable: (options: any) => jsPDF;
+  autoTable: (options: any) => jsPDFWithAutoTable;
 }
+
+interface PdfReportData {
+    aiReport: GenerateAiReportOutput;
+    reportType: 'weekly' | 'monthly';
+    visits: StudentVisit[];
+    appointments: Appointment[];
+    logs: ActivityLog[];
+}
+
 
 function addHeader(doc: jsPDF, title: string) {
   doc.setFont('helvetica', 'bold');
@@ -40,15 +49,23 @@ function formatActionType(type: string) {
     return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-export async function generatePdfReport(report: GenerateAiReportOutput, type: 'weekly' | 'monthly', logs: ActivityLog[]) {
-    const doc = new jsPDF() as jsPDFWithAutoTable;
+export async function generatePdfReport(data: PdfReportData) {
+    const { aiReport, reportType, visits, appointments, logs } = data;
+    const doc = new jsPDF({
+        encryption: {
+            userPassword: 'admin123',
+            ownerPassword: 'admin', // Owner password can be different
+            userPermissions: ["print", "modify", "copy", "annot-forms"]
+        }
+    }) as jsPDFWithAutoTable;
+
     const today = new Date();
     const margin = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
     let currentY = 40;
 
     // Cover Page
-    addHeader(doc, `AI-Generated ${type.charAt(0).toUpperCase() + type.slice(1)} Clinic Report`);
+    addHeader(doc, `AI-Generated ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Clinic Report`);
     doc.setFontSize(12);
     doc.text(`Generated for: Nurse Manuel`, margin, currentY);
     currentY += 7;
@@ -64,58 +81,114 @@ export async function generatePdfReport(report: GenerateAiReportOutput, type: 'w
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    const summaryLines = doc.splitTextToSize(report.summaryText.replace(/\*\*/g, ''), pageWidth - margin * 2);
+    const summaryLines = doc.splitTextToSize(aiReport.summaryText.replace(/\*\*/g, ''), pageWidth - margin * 2);
     doc.text(summaryLines, margin, currentY);
-    currentY += summaryLines.length * 5 + 10;
+    let lastY = currentY + summaryLines.length * 5 + 10;
 
 
     // Detailed Analysis
+    doc.addPage();
+    currentY = 30;
+    addHeader(doc, `Detailed Analysis`);
+
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('2. Detailed Analysis', margin, currentY);
     currentY += 10;
     
-    // Total Visits
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('Total Student Visits:', margin, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(report.totalVisits.toString(), margin + 50, currentY);
+    doc.text(aiReport.totalVisits.toString(), margin + 55, currentY);
+    currentY += 8;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Appointments:', margin, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(aiReport.totalAppointments.toString(), margin + 55, currentY);
     currentY += 10;
     
-    // Most Common Symptoms
     doc.setFont('helvetica', 'bold');
     doc.text('Most Common Symptoms:', margin, currentY);
     currentY += 7;
     doc.setFont('helvetica', 'normal');
-    report.mostCommonSymptoms.forEach(symptom => {
+    aiReport.mostCommonSymptoms.forEach(symptom => {
         doc.text(`• ${symptom}`, margin + 5, currentY);
         currentY += 6;
     });
     currentY += 4;
     
-    // Medicines Dispensed
     doc.setFont('helvetica', 'bold');
     doc.text('Medicines Dispensed Summary:', margin, currentY);
     currentY += 7;
     doc.setFont('helvetica', 'normal');
-    const medicineLines = doc.splitTextToSize(report.medicinesDispensed.replace(/\*\*/g, ''), pageWidth - margin * 2);
+    const medicineLines = doc.splitTextToSize(aiReport.medicinesDispensed.replace(/\*\*/g, ''), pageWidth - margin * 2);
     doc.text(medicineLines, margin, currentY);
-    currentY += medicineLines.length * 5 + 10;
+    lastY = currentY + medicineLines.length * 5 + 10;
+
+    // Student Visits Table
+    doc.addPage();
+    currentY = 30;
+    addHeader(doc, `Student Data`);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('3. Student Visits Log', margin, currentY);
+
+    const visitTableData = visits.map(v => [
+        format(parseISO(v.timestamp), 'PP'),
+        v.studentName,
+        `${v.studentYear} - ${v.studentSection}`,
+        v.reason,
+        v.symptoms,
+    ]);
+
+    doc.autoTable({
+        head: [['Date', 'Student Name', 'Year & Section', 'Reason', 'Symptoms']],
+        body: visitTableData,
+        startY: currentY + 10,
+        headStyles: { fillColor: [63, 81, 181] },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: { 3: { cellWidth: 40 }, 4: { cellWidth: 40 } },
+    });
+    lastY = doc.autoTable.previous.finalY + 15;
+
+
+    // Appointments Table
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('4. Scheduled Appointments', margin, lastY);
     
+    const appointmentTableData = appointments.map(a => [
+        format(parseISO(a.appointmentDate), 'PP'),
+        format(new Date(`1970-01-01T${a.appointmentTime}`), 'p'),
+        a.studentName,
+        `${a.studentYear} - ${a.studentSection}`,
+        a.reason,
+    ]);
+
+     doc.autoTable({
+        head: [['Date', 'Time', 'Student Name', 'Year & Section', 'Reason']],
+        body: appointmentTableData,
+        startY: lastY + 10,
+        headStyles: { fillColor: [63, 81, 181] },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: { 4: { cellWidth: 50 } },
+    });
+    lastY = doc.autoTable.previous.finalY + 15;
+
 
     // Activity Log Data
     doc.addPage();
     currentY = 30;
-    addHeader(doc, 'Detailed Activity Log');
+    addHeader(doc, 'System Activity Log');
     
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('3. Activity & Log Data', margin, currentY);
-    currentY += 10;
-
-    const tableData = logs.map(log => [
-        format(new Date(log.timestamp), 'PP p'),
+    doc.text('5. System Activity Log', margin, currentY);
+    
+    const logTableData = logs.map(log => [
+        format(parseISO(log.timestamp), 'PP p'),
         log.userName,
         formatActionType(log.actionType),
         Object.entries(log.details).map(([key, value]) => `${key}: ${value}`).join('\n')
@@ -123,9 +196,9 @@ export async function generatePdfReport(report: GenerateAiReportOutput, type: 'w
 
     doc.autoTable({
         head: [['Timestamp', 'User', 'Action', 'Details']],
-        body: tableData,
-        startY: currentY,
-        headStyles: { fillColor: [63, 81, 181] }, // #3F51B5
+        body: logTableData,
+        startY: currentY + 10,
+        headStyles: { fillColor: [63, 81, 181] }, 
         styles: { fontSize: 8, cellPadding: 2 },
         columnStyles: { 3: { cellWidth: 70 } },
     });
@@ -134,18 +207,5 @@ export async function generatePdfReport(report: GenerateAiReportOutput, type: 'w
     
     const fileName = `Detailed_Report_Nurse-Manuel_${format(today, 'yyyy-MM-dd_HHmm')}.pdf`;
     
-    // Generate the PDF output with password protection
-    const pdfOutput = doc.output('blob', {
-        userPassword: 'admin123'
-    });
-
-    // Create a URL and trigger the download
-    const url = URL.createObjectURL(pdfOutput);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    doc.save(fileName);
 }

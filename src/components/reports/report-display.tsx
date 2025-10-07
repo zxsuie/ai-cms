@@ -4,14 +4,14 @@
 import { useState, useTransition } from 'react';
 import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Pill, Activity, ListChecks, Loader2 } from "lucide-react";
+import { FileText, Pill, Activity, ListChecks, Loader2, CalendarClock } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Markdown } from "../ui/markdown";
 import { useToast } from '@/hooks/use-toast';
 import { generatePdfReport } from '@/lib/generate-pdf-report';
-import { getAllLogsAction } from '@/app/(app)/reports/actions';
-import { ActivityLog } from '@/lib/types';
+import { getReportDataForPdf } from '@/app/(app)/reports/actions';
+import type { StudentVisit, Appointment, ActivityLog } from '@/lib/types';
 
 
 interface ReportDisplayProps {
@@ -30,14 +30,22 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
   const handleExport = () => {
     startExportTransition(async () => {
       try {
-        // Fetch all logs for the detailed report
-        const logsResult = await getAllLogsAction();
+        // Fetch all data required for the detailed report
+        const result = await getReportDataForPdf();
         
-        if (!logsResult.success || !logsResult.logs) {
-            throw new Error(logsResult.error || 'Failed to fetch logs for PDF report.');
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch data for PDF report.');
         }
 
-        await generatePdfReport(report, type, logsResult.logs);
+        const { visits, appointments, logs } = result;
+
+        await generatePdfReport({
+          aiReport: report,
+          reportType: type,
+          visits: visits as StudentVisit[],
+          appointments: appointments as Appointment[],
+          logs: logs as ActivityLog[]
+        });
         
         toast({
           title: "✅ Success",
@@ -78,16 +86,37 @@ export function ReportDisplay({ report, type }: ReportDisplayProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="font-headline text-lg">Total Visits</CardTitle>
+                <div className="p-3 rounded-full bg-primary/10 text-primary">
+                    <Activity className="h-6 w-6" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                 <div className="text-4xl font-bold">{report.totalVisits}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="font-headline text-lg">Total Appointments</CardTitle>
+                <div className="p-3 rounded-full bg-primary/10 text-primary">
+                    <CalendarClock className="h-6 w-6" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                 <div className="text-4xl font-bold">{report.totalAppointments}</div>
+              </CardContent>
+            </Card>
+        </div>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-headline text-lg">Visit Summary</CardTitle>
-            <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <Activity className="h-6 w-6" />
-            </div>
+          <CardHeader>
+             <CardTitle className="font-headline text-lg">Overall Summary</CardTitle>
           </CardHeader>
           <CardContent>
-             <div className="text-4xl font-bold">{report.totalVisits}</div>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground">
                 <Markdown text={report.summaryText} />
             </p>
           </CardContent>
