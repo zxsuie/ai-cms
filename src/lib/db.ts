@@ -2,13 +2,15 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert} from '@/lib/types';
 import { subDays, formatISO } from 'date-fns';
+import { logVisitSchema } from './types';
+import { z } from 'zod';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-type StudentVisitInsert = Omit<StudentVisit, 'id' | 'timestamp' | 'releaseFormLink' | 'studentId'>;
+type StudentVisitInsert = z.infer<typeof logVisitSchema>;
 type AppointmentInsert = Omit<Appointment, 'id'>;
 
 // Helper function to convert a single object's keys from snake_case to camelCase
@@ -75,6 +77,9 @@ export const db = {
       .from('visits')
       .update({ ai_suggestion: aiSuggestion, excuse_letter_text: excuseLetterText })
       .eq('id', visitId);
+    if (error) {
+        console.error("Error updating visit AI content:", error);
+    }
     return !error;
   },
 

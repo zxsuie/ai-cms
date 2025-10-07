@@ -29,12 +29,8 @@ export async function getAiSymptomSuggestion(input: { symptoms: string }) {
 
 export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
   try {
-    // 1. Log the basic visit first.
-    const newVisit = await db.addVisit({ 
-      ...data, 
-      aiSuggestion: 'Generating...', 
-      excuseLetterText: 'Generating...' 
-    });
+    // 1. Log the basic visit first, without AI content.
+    const newVisit = await db.addVisit(data);
 
     // 2. Add to activity log immediately.
     await db.addActivityLog('visit_logged', { 
