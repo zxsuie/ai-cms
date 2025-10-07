@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/log-visit', label: 'New Visit', icon: PlusCircle },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
   { href: '/appointments', label: 'Appointments', icon: CalendarDays },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
