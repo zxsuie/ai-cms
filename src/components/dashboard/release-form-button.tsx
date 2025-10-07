@@ -172,9 +172,6 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                         </>
                     ) : (
                         <>
-                            <DialogClose asChild>
-                                <Button variant="outline">Close</Button>
-                            </DialogClose>
                             <Button variant="secondary" onClick={() => setIsEditing(true)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -188,7 +185,7 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                 ) : (
                     <>
                         <DialogClose asChild>
-                            <Button variant="outline">Close</Button>
+                            <Button variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button onClick={handleGenerate} disabled={isPending}>
                         {isPending ? (
