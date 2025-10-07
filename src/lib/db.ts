@@ -86,16 +86,16 @@ export const db = {
   },
   
   getLowStockCount: async (): Promise<number> => {
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from('medicines')
-      .select('*', { count: 'exact', head: true })
-      .ltc('stock', 'threshold');
+      .select('stock, threshold');
 
     if (error) {
       console.error('Error fetching low stock count:', error);
       return 0;
     }
-    return count ?? 0;
+    const lowStockItems = data.filter(med => med.stock < med.threshold);
+    return lowStockItems.length;
   },
   
   getMedicineById: async (medicineId: string): Promise<Medicine | null> => {
