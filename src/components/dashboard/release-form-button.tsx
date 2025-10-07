@@ -86,7 +86,9 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               </div>
               <div className="grid grid-cols-1 gap-1">
                 <strong>Nurse's Note/Suggestion:</strong>
-                <p className="text-muted-foreground whitespace-pre-wrap">{visit.aiSuggestion}</p>
+                 <ScrollArea className="h-32 w-full rounded-md border p-2">
+                    <p className="text-muted-foreground whitespace-pre-wrap">{visit.aiSuggestion}</p>
+                </ScrollArea>
               </div>
               {visit.releaseFormLink && (
                 <div className="flex items-center gap-2 pt-4 text-green-600">
