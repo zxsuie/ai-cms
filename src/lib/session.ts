@@ -1,3 +1,4 @@
+
 import type {IronSessionOptions} from 'iron-session';
 import type { Profile } from './types';
 
