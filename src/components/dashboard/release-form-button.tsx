@@ -17,6 +17,7 @@ import { generateAndSaveReleaseForm } from '@/app/(app)/dashboard/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { ScrollArea } from '../ui/scroll-area';
 
 export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,50 +51,52 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Student Release Form</DialogTitle>
             <DialogDescription>
               This is a preview of the generated release form.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4 text-sm">
-            <div className="grid grid-cols-2 gap-2">
-              <strong>Student Name:</strong>
-              <span>{visit.studentName}</span>
-            </div>
-             <div className="grid grid-cols-2 gap-2">
-              <strong>Year & Section:</strong>
-              <span>{visit.studentYear} - {visit.studentSection}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <strong>Visit Date:</strong>
-              <span>{format(new Date(visit.timestamp), 'PPP')}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <strong>Visit Time:</strong>
-              <span>{format(new Date(visit.timestamp), 'p')}</span>
-            </div>
-            <div className="grid grid-cols-1 gap-1">
-              <strong>Reason for Visit:</strong>
-              <p className="text-muted-foreground">{visit.reason}</p>
-            </div>
-            <div className="grid grid-cols-1 gap-1">
-              <strong>Symptoms Reported:</strong>
-              <p className="text-muted-foreground">{visit.symptoms}</p>
-            </div>
-            <div className="grid grid-cols-1 gap-1">
-              <strong>Nurse's Note/Suggestion:</strong>
-              <p className="text-muted-foreground">{visit.aiSuggestion}</p>
-            </div>
-             {visit.releaseFormLink && (
-              <div className="flex items-center gap-2 pt-4 text-green-600">
-                <CheckCircle className="h-4 w-4" />
-                <span>Form previously generated: {visit.releaseFormLink}</span>
+          <ScrollArea className="flex-grow pr-6 -mr-6">
+            <div className="space-y-4 py-4 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <strong>Student Name:</strong>
+                <span>{visit.studentName}</span>
               </div>
-            )}
-          </div>
-          <DialogFooter>
+              <div className="grid grid-cols-2 gap-2">
+                <strong>Year & Section:</strong>
+                <span>{visit.studentYear} - {visit.studentSection}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <strong>Visit Date:</strong>
+                <span>{format(new Date(visit.timestamp), 'PPP')}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <strong>Visit Time:</strong>
+                <span>{format(new Date(visit.timestamp), 'p')}</span>
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                <strong>Reason for Visit:</strong>
+                <p className="text-muted-foreground">{visit.reason}</p>
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                <strong>Symptoms Reported:</strong>
+                <p className="text-muted-foreground">{visit.symptoms}</p>
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                <strong>Nurse's Note/Suggestion:</strong>
+                <p className="text-muted-foreground whitespace-pre-wrap">{visit.aiSuggestion}</p>
+              </div>
+              {visit.releaseFormLink && (
+                <div className="flex items-center gap-2 pt-4 text-green-600">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Form previously generated: {visit.releaseFormLink}</span>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter className="mt-4 shrink-0">
             <DialogClose asChild>
               <Button variant="outline">Close</Button>
             </DialogClose>
