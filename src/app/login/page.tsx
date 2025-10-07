@@ -27,7 +27,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    if (username === 'user' && password === '12345678') {
+    if (username === 'admin' && password === 'admin') {
       // In a real app, you would set a session here.
       router.push('/dashboard');
     } else {
@@ -53,7 +53,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="user"
+                placeholder="admin"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
