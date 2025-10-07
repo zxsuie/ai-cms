@@ -1,4 +1,6 @@
 
+'use client';
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // Ensure you have this import for autoTable
 import { format } from 'date-fns';
