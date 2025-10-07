@@ -6,6 +6,8 @@ import { suggestDiagnosis } from '@/ai/flows/ai-symptom-suggestion';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { logVisitSchema } from '@/lib/types';
+import { generateExcuseSlip } from '@/ai/flows/ai-excuse-slip-generator';
+import { format } from 'date-fns';
 
 const SuggestionSchema = z.object({
   symptoms: z.string().min(10, "Please enter at least 10 characters of symptoms."),
@@ -58,4 +60,31 @@ export async function generateAndSaveReleaseForm(visitId: string) {
   revalidatePath('/logs');
   
   return { success: true, message: 'Release form generated and linked.', link: fakePdfLink };
+}
+
+
+export async function generateExcuseSlipAction(visit: {
+  studentName: string;
+  timestamp: string;
+  symptoms: string;
+  reason: string;
+}) {
+  try {
+    const result = await generateExcuseSlip({
+      studentName: visit.studentName,
+      visitDate: format(new Date(visit.timestamp), 'PPP'),
+      symptoms: visit.symptoms,
+      reason: visit.reason,
+    });
+    
+    await db.addActivityLog('excuse_slip_generated', { 
+      studentName: visit.studentName, 
+    });
+    revalidatePath('/logs');
+
+    return { success: true, excuseSlip: result.excuseSlipText };
+  } catch (error) {
+    console.error('Excuse slip generation failed:', error);
+    return { success: false, error: 'Failed to generate AI excuse slip.' };
+  }
 }
