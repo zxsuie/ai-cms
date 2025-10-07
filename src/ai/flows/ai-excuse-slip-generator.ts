@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -32,22 +33,36 @@ const prompt = ai.definePrompt({
   name: 'generateExcuseSlipPrompt',
   input: {schema: GenerateExcuseSlipInputSchema},
   output: {schema: GenerateExcuseSlipOutputSchema},
-  prompt: `You are an AI assistant for a school nurse. Your task is to write a formal student excuse slip.
+  prompt: `You are an AI assistant for a school nurse named "Nurse Manuel". Your task is to write a formal, context-rich student excuse slip based on the provided visit details. The tone should be professional and suitable for a school environment.
 
-Generate a polite, professional, and detailed excuse slip based on the provided details. The slip should follow a formal letter structure. It must state the student's name, the date of the visit, and a brief, non-technical reason for their visit or absence. Do not include overly-detailed medical information, but be clear and professional.
+**Instructions:**
+1.  **Address:** Start with a formal salutation like "To Whom It May Concern," or "Dear Teacher/Adviser,".
+2.  **Body Paragraph 1 (Certification):** State clearly that the student visited the clinic. Include the student's full name, the date of the visit, and the reason. Combine the provided 'reason' and 'symptoms' into a professional-sounding description. For example, if the reason is "Felt dizzy" and symptoms are "headache, nausea", the letter could say "...due to experiencing dizziness, headache, and nausea."
+3.  **Body Paragraph 2 (Action/Recommendation):** Briefly explain the assessment or action taken. For instance, "Upon assessment, the student was advised to rest and was monitored in the clinic." or "The student was given appropriate first aid and allowed to return to class after observation."
+4.  **Closing:** Politely request that the student's absence from class during that time be excused.
+5.  **Signature:** End with "Sincerely," followed by "Nurse Manuel" and then "School Clinic".
 
-Student Name: {{{studentName}}}
-Visit Date: {{{visitDate}}}
-Symptoms Reported: {{{symptoms}}}
-Reason for Visit: {{{reason}}}
+**Input Data:**
+*   Student Name: {{{studentName}}}
+*   Visit Date: {{{visitDate}}}
+*   Symptoms Reported: {{{symptoms}}}
+*   Reason for Visit: {{{reason}}}
 
-Please generate the complete text for the excuse slip.
-- Start with the clinic name "**iClinicMate**" at the top.
-- Include today's date.
-- Use a formal salutation like "To Whom It May Concern,".
-- The body of the letter should confirm that the student visited the clinic. It should state the reason for the visit in a professional manner based on the 'reason' and 'symptoms' provided. For example, if the reason is "Felt dizzy", the letter could say "This is to certify that the student visited the clinic due to feeling unwell and experiencing dizziness."
-- The letter should also state what action was taken, if inferable (e.g., "The student was allowed to rest in the clinic before returning to class.").
-- End with a formal closing like "Sincerely," followed by "School Nurse".`,
+---
+
+**Example Output Format:**
+
+To Whom It May Concern,
+
+This is to certify that [Student Name] visited the school clinic on [Visit Date] due to [professional description of reason and symptoms].
+
+Upon assessment, the student was [action taken, e.g., advised to rest in the clinic]. He/She is now cleared to return to class.
+
+Please excuse the student's absence from class during this time. Thank you for your understanding.
+
+Sincerely,
+Nurse Manuel
+School Clinic`,
 });
 
 const generateExcuseSlipFlow = ai.defineFlow(
@@ -61,6 +76,9 @@ const generateExcuseSlipFlow = ai.defineFlow(
     if (!output) {
       throw new Error('The AI model failed to generate an excuse slip.');
     }
-    return output;
+    // A simple text replace to make the output cleaner and remove the markdown from the AI.
+    let cleanedText = output.excuseSlipText.replace(/#+\s/g, '');
+    cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '$1');
+    return { excuseSlipText: cleanedText };
   }
 );

@@ -32,7 +32,16 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
     const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
     const aiSuggestion = aiResult.suggestions || 'No suggestion available.';
 
-    const newVisit = await db.addVisit({ ...data, aiSuggestion });
+    // Generate excuse letter text automatically
+    const excuseSlipResult = await generateExcuseSlip({
+      studentName: data.studentName,
+      visitDate: format(new Date(), 'PPP'),
+      symptoms: data.symptoms,
+      reason: data.reason,
+    });
+    const excuseLetterText = excuseSlipResult.excuseSlipText;
+
+    const newVisit = await db.addVisit({ ...data, aiSuggestion, excuseLetterText });
     
     await db.addActivityLog('visit_logged', { 
       studentName: newVisit.studentName, 
@@ -41,12 +50,13 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
 
     revalidatePath('/dashboard');
     revalidatePath('/logs');
-    return { success: true, message: 'Visit logged successfully.' };
+    return { success: true, message: 'Visit logged successfully.', visit: newVisit };
   } catch (error) {
     console.error('Failed to log visit:', error);
     return { success: false, message: 'Failed to log visit.' };
   }
 }
+
 
 export async function generateAndSaveReleaseForm(visitId: string) {
   // In a real app, this would generate a PDF and upload to Firebase Storage
@@ -64,6 +74,7 @@ export async function generateAndSaveReleaseForm(visitId: string) {
 
 
 export async function generateExcuseSlipAction(visit: {
+  id: string;
   studentName: string;
   timestamp: string;
   symptoms: string;
@@ -77,14 +88,29 @@ export async function generateExcuseSlipAction(visit: {
       reason: visit.reason,
     });
     
+    // Save the generated slip to the database
+    await db.updateExcuseLetterText(visit.id, result.excuseSlipText);
+    
     await db.addActivityLog('excuse_slip_generated', { 
       studentName: visit.studentName, 
     });
     revalidatePath('/logs');
+    revalidatePath('/dashboard');
 
     return { success: true, excuseSlip: result.excuseSlipText };
   } catch (error) {
     console.error('Excuse slip generation failed:', error);
     return { success: false, error: 'Failed to generate AI excuse slip.' };
+  }
+}
+
+export async function updateExcuseLetterAction(visitId: string, newText: string) {
+  try {
+    await db.updateExcuseLetterText(visitId, newText);
+    revalidatePath('/dashboard');
+    return { success: true, message: 'Excuse letter updated.' };
+  } catch (error) {
+    console.error('Failed to update excuse letter:', error);
+    return { success: false, message: 'Failed to update excuse letter.' };
   }
 }

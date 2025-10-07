@@ -78,6 +78,14 @@ export const db = {
     return !error;
   },
   
+  updateExcuseLetterText: async (visitId: string, text: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('visits')
+      .update({ excuse_letter_text: text })
+      .eq('id', visitId);
+    return !error;
+  },
+
   // Medicines
   getMedicines: async (): Promise<Medicine[]> => {
     const {data, error} = await supabase.from('medicines').select('*').order('name');

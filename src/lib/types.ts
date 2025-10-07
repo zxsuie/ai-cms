@@ -34,6 +34,7 @@ export type StudentVisit = {
   reason: string;
   aiSuggestion: string;
   releaseFormLink?: string;
+  excuseLetterText?: string;
 };
 
 export type Medicine = {
