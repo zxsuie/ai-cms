@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -15,7 +14,7 @@ import {
 import { StudentVisit } from '@/lib/types';
 import { generateExcuseSlipAction, updateExcuseLetterAction } from '@/app/(app)/dashboard/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Bot, Edit, Save, FileDown } from 'lucide-react';
+import { Loader2, FileText, Bot, Edit, Save, FileDown, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { Markdown } from '../ui/markdown';
@@ -78,12 +77,21 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
     
     doc.setFont('PT Sans', 'normal');
     doc.setFontSize(12);
-    const plainText = excuseSlip.replace(/\*\*(.*?)\*\*/g, '$1');
-    const lines = doc.splitTextToSize(plainText, 170);
+    // Remove markdown bolding for the PDF text
+    const plainText = excuseSlip.replace(/\*\*/g, '');
+    const lines = doc.splitTextToSize(plainText, 170); // 170 is width in mm for A4 paper with margin
     doc.text(lines, 20, 40);
 
     doc.save(`Excuse_Slip_${visit.studentName.replace(/ /g, '_')}.pdf`);
   }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(excuseSlip);
+    toast({
+      title: 'Copied!',
+      description: 'Excuse slip text has been copied to your clipboard.',
+    });
+  };
 
   return (
     <>
@@ -100,12 +108,14 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               AI-generated excuse slip for the student's visit. You can edit before downloading.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-grow py-4 space-y-4">
+          <div className="flex-grow py-4 space-y-4 overflow-y-auto">
              <Alert>
                 <Bot className="h-4 w-4" />
                 <AlertTitle>Visit Details</AlertTitle>
                 <AlertDescription className="text-xs">
-                    <strong>{visit.studentName}</strong> reported "{visit.symptoms}" on {format(new Date(visit.timestamp), 'PP')}.
+                    <strong>Student:</strong> {visit.studentName} <br />
+                    <strong>Symptoms:</strong> "{visit.symptoms}" <br />
+                    <strong>Date:</strong> {format(new Date(visit.timestamp), 'PP')}
                 </AlertDescription>
             </Alert>
             
@@ -122,7 +132,7 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                     <Textarea 
                         value={excuseSlip} 
                         onChange={(e) => setExcuseSlip(e.target.value)}
-                        className="h-full w-full min-h-[200px] text-sm"
+                        className="h-full w-full min-h-[200px] text-sm whitespace-pre-wrap"
                     />
                 ) : (
                     <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
@@ -132,16 +142,22 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
               </ScrollArea>
             )}
           </div>
-          <DialogFooter className="mt-4 shrink-0 flex-wrap gap-2 justify-between">
-            <div>
+          <DialogFooter className="mt-4 shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+            <div className="flex gap-2 justify-end sm:justify-start">
                {excuseSlip && !isEditing && (
-                 <Button variant="outline" onClick={handleDownloadPdf}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Download PDF
-                </Button>
+                 <>
+                   <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
+                      <FileDown className="mr-2 h-4 w-4" />
+                      PDF
+                  </Button>
+                   <Button variant="outline" size="sm" onClick={handleCopy}>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy
+                  </Button>
+                 </>
                )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end">
                 <DialogClose asChild>
                 <Button variant="outline">Close</Button>
                 </DialogClose>
@@ -149,7 +165,7 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
                     isEditing ? (
                         <Button onClick={handleSaveChanges} disabled={isPending}>
                             {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Save Changes
+                            Save
                         </Button>
                     ) : (
                         <>
