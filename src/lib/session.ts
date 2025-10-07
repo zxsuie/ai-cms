@@ -1,13 +1,20 @@
 import type {IronSessionOptions} from 'iron-session';
+import type { Profile } from './types';
 
 export type SessionData = {
   isLoggedIn: boolean;
-  username: string;
+  user: {
+      id: string;
+      email: string;
+      role: Profile['role'];
+      fullName?: string;
+      avatarUrl?: string;
+  } | null;
 };
 
 export const defaultSession: SessionData = {
   isLoggedIn: false,
-  username: '',
+  user: null,
 };
 
 export const sessionOptions: IronSessionOptions = {

@@ -70,3 +70,10 @@ export type ActivityLog = {
   actionType: string;
   details: Record<string, any>;
 };
+
+export type Profile = {
+    id: string; // UUID
+    fullName?: string;
+    avatarUrl?: string;
+    role: 'admin' | 'super_admin';
+}

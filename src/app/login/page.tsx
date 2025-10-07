@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useFormState, useFormStatus } from 'react-dom';
+import { authenticate, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,76 +15,88 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Bot } from 'lucide-react';
+import Link from 'next/link';
+
+function LoginButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" aria-disabled={pending}>
+      {pending ? 'Logging in...' : 'Login'}
+    </Button>
+  );
+}
+
+function GoogleButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" variant="outline" className="w-full" aria-disabled={pending}>
+            {pending ? 'Redirecting...' : 'Sign In with Google'}
+        </Button>
+    );
+}
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  function handleSignIn(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-
-    if (username === 'admin' && password === 'admin') {
-      // In a real app, you would set a session here.
-      router.push('/dashboard');
-    } else {
-      setError('Invalid username or password. Please try again.');
-    }
-  }
+  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <form onSubmit={handleSignIn}>
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline">
-              iClinicMate Login
-            </CardTitle>
-            <CardDescription>
-              Enter your admin credentials to access the system.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="admin"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="********"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive" className="text-xs">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Login Failed</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+      <div className="w-full max-w-sm space-y-4">
+        <Card>
+          <form action={dispatch}>
+            <CardHeader>
+              <CardTitle className="text-2xl font-headline">
+                iClinicMate Login
+              </CardTitle>
+              <CardDescription>
+                Enter your credentials to access the system.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                />
+              </div>
+              {errorMessage && (
+                <Alert variant="destructive" className="text-xs">
+                  <Terminal className="h-4 w-4" />
+                  <AlertTitle>Login Failed</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <LoginButton />
+            </CardFooter>
+          </form>
+            <CardFooter className="flex flex-col gap-4 border-t pt-4">
+                <form action={signInWithGoogle}>
+                    <GoogleButton />
+                </form>
+            </CardFooter>
+        </Card>
+        <div className="text-center text-sm text-muted-foreground">
+          Don't have an account?{' '}
+          <Link href="/signup" className="underline hover:text-primary">
+            Sign up
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }

@@ -13,12 +13,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
 
 type MedicineFormValues = z.infer<typeof addMedicineSchema>;
 
 export function AddMedicineForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { user } = useUser();
 
   const form = useForm<MedicineFormValues>({
     resolver: zodResolver(addMedicineSchema),
@@ -30,8 +32,16 @@ export function AddMedicineForm() {
   });
 
   function onSubmit(data: MedicineFormValues) {
+    if (!user) {
+      toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'You must be logged in to perform this action.',
+      });
+      return;
+    }
     startTransition(async () => {
-      const result = await addMedicineAction(data);
+      const result = await addMedicineAction(data, user.fullName || user.email || 'Unknown User');
       if (result.success) {
         toast({
           title: 'Success',

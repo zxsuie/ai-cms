@@ -8,6 +8,8 @@ import { GenerateAiReportOutput } from "@/ai/flows/ai-report-generator";
 import { ReportDisplay } from "./report-display";
 import { Loader2, Terminal } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { useUser } from "@/hooks/use-user";
+import { useToast } from "@/hooks/use-toast";
 
 type ReportType = 'weekly' | 'monthly';
 
@@ -16,15 +18,25 @@ export function ReportGenerator() {
   const [report, setReport] = useState<GenerateAiReportOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeReportType, setActiveReportType] = useState<ReportType | null>(null);
-
+  const { user } = useUser();
+  const { toast } = useToast();
 
   const handleGenerateReport = (reportType: ReportType) => {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Error',
+            description: 'You must be logged in to generate a report.',
+        });
+        return;
+    }
+
     startTransition(async () => {
         setReport(null);
         setError(null);
         setActiveReportType(reportType);
 
-        const result = await generateReportAction(reportType);
+        const result = await generateReportAction(reportType, user.fullName || user.email!);
         if (result.success) {
             setReport(result.report!);
         } else {

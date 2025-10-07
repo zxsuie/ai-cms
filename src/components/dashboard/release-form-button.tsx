@@ -22,6 +22,7 @@ import { Markdown } from '../ui/markdown';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Textarea } from '../ui/textarea';
 import jsPDF from 'jspdf';
+import { useUser } from '@/hooks/use-user';
 
 export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,8 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
   const [excuseSlip, setExcuseSlip] = useState(visit.excuseLetterText || '');
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
+
 
   useEffect(() => {
     // When the dialog opens, reset the state based on the visit prop
@@ -39,8 +42,12 @@ export function ReleaseFormButton({ visit }: { visit: StudentVisit }) {
   }, [isOpen, visit.excuseLetterText]);
 
   const handleGenerate = () => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
+        return;
+    }
     startTransition(async () => {
-      const result = await generateExcuseSlipAction(visit);
+      const result = await generateExcuseSlipAction(visit, user.fullName || user.email!);
       if (result.success && result.excuseSlip) {
         setExcuseSlip(result.excuseSlip);
         setIsEditing(false);

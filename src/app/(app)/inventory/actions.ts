@@ -19,14 +19,14 @@ const dispenseMedicineSchema = z.object({
     .positive('Quantity must be greater than zero.'),
 });
 
-export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>) {
+export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>, userName: string) {
   try {
     const newMedicine = await db.addMedicine(data);
     await db.addActivityLog('medicine_added', { 
       medicineId: newMedicine.id,
       medicineName: newMedicine.name,
       initialStock: newMedicine.stock,
-    });
+    }, userName);
     revalidatePath('/inventory');
     revalidatePath('/logs');
     return { success: true, message: `${newMedicine.name} added to inventory.` };
@@ -36,7 +36,7 @@ export async function addMedicineAction(data: z.infer<typeof addMedicineSchema>)
   }
 }
 
-export async function dispenseMedicineAction(data: z.infer<typeof dispenseMedicineSchema>) {
+export async function dispenseMedicineAction(data: z.infer<typeof dispenseMedicineSchema>, userName: string) {
   const validated = dispenseMedicineSchema.safeParse(data);
   if (!validated.success) {
     return {success: false, message: 'Invalid input.'};
@@ -62,7 +62,7 @@ export async function dispenseMedicineAction(data: z.infer<typeof dispenseMedici
         medicineName: medicine.name,
         dispensedQuantity: quantity,
         newStock: newStock,
-      });
+      }, userName);
       revalidatePath('/inventory');
       revalidatePath('/logs');
       return {success: true, message: `Dispensed ${quantity} of ${medicine.name}.`};
@@ -77,7 +77,7 @@ export async function dispenseMedicineAction(data: z.infer<typeof dispenseMedici
   }
 }
 
-export async function requestRefillAction(medicineId: string) {
+export async function requestRefillAction(medicineId: string, userName: string) {
   try {
      const medicine = await db.getMedicineById(medicineId);
     if (!medicine) {
@@ -86,7 +86,7 @@ export async function requestRefillAction(medicineId: string) {
 
     const success = await db.requestRefill(medicineId);
     if (success) {
-      await db.addActivityLog('refill_requested', { medicineId: medicine.id, medicineName: medicine.name });
+      await db.addActivityLog('refill_requested', { medicineId: medicine.id, medicineName: medicine.name }, userName);
       revalidatePath('/inventory');
       revalidatePath('/logs');
       return {success: true, message: 'Refill requested successfully.'};
@@ -98,7 +98,8 @@ export async function requestRefillAction(medicineId: string) {
 }
 
 export async function updateMedicineStockAction(
-  data: z.infer<typeof updateStockSchema>
+  data: z.infer<typeof updateStockSchema>,
+  userName: string
 ) {
   const validated = updateStockSchema.safeParse(data);
   if (!validated.success) {
@@ -121,7 +122,7 @@ export async function updateMedicineStockAction(
         medicineName: medicine.name,
         oldStock: medicine.stock,
         newStock: validated.data.stock
-      });
+      }, userName);
       revalidatePath('/inventory');
       revalidatePath('/logs');
       return {success: true, message: 'Stock updated successfully.'};
@@ -132,7 +133,7 @@ export async function updateMedicineStockAction(
   }
 }
 
-export async function deleteMedicineAction(medicineId: string) {
+export async function deleteMedicineAction(medicineId: string, userName: string) {
   try {
     const medicine = await db.getMedicineById(medicineId);
     if (!medicine) {
@@ -142,7 +143,7 @@ export async function deleteMedicineAction(medicineId: string) {
 
     const success = await db.deleteMedicine(medicineId);
     if (success) {
-      await db.addActivityLog('medicine_deleted', { medicineId: medicine.id, medicineName: medicine.name });
+      await db.addActivityLog('medicine_deleted', { medicineId: medicine.id, medicineName: medicine.name }, userName);
       revalidatePath('/inventory');
       revalidatePath('/logs');
       return {success: true, message: 'Medicine deleted.'};

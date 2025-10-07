@@ -27,7 +27,7 @@ export async function getAiSymptomSuggestion(input: { symptoms: string }) {
   }
 }
 
-export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
+export async function logStudentVisit(data: z.infer<typeof logVisitSchema>, userName: string) {
   try {
     // 1. Log the basic visit first, without AI content.
     const newVisit = await db.addVisit(data);
@@ -36,7 +36,7 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
     await db.addActivityLog('visit_logged', { 
       studentName: newVisit.studentName, 
       visitId: newVisit.id 
-    });
+    }, userName);
 
     // Revalidate paths so the UI updates with the basic info.
     revalidatePath('/dashboard');
@@ -79,13 +79,13 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>) {
 }
 
 
-export async function generateAndSaveReleaseForm(visitId: string) {
+export async function generateAndSaveReleaseForm(visitId: string, userName: string) {
   // In a real app, this would generate a PDF and upload to Firebase Storage
   // Here we simulate it by generating a fake link and saving it.
   const fakePdfLink = `/release-forms/form-${visitId}-${Date.now()}.pdf`;
   
   await db.addReleaseFormLink(visitId, fakePdfLink);
-  await db.addActivityLog('release_form_generated', { visitId, link: fakePdfLink });
+  await db.addActivityLog('release_form_generated', { visitId, link: fakePdfLink }, userName);
 
   revalidatePath('/dashboard');
   revalidatePath('/logs');
@@ -94,13 +94,16 @@ export async function generateAndSaveReleaseForm(visitId: string) {
 }
 
 
-export async function generateExcuseSlipAction(visit: {
-  id: string;
-  studentName: string;
-  timestamp: string;
-  symptoms: string;
-  reason: string;
-}) {
+export async function generateExcuseSlipAction(
+    visit: {
+        id: string;
+        studentName: string;
+        timestamp: string;
+        symptoms: string;
+        reason: string;
+    },
+    userName: string
+) {
   try {
     const result = await generateExcuseSlip({
       studentName: visit.studentName,
@@ -114,7 +117,8 @@ export async function generateExcuseSlipAction(visit: {
     
     await db.addActivityLog('excuse_slip_generated', { 
       studentName: visit.studentName, 
-    });
+    }, userName);
+
     revalidatePath('/logs');
     revalidatePath('/dashboard');
 

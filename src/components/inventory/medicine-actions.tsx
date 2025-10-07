@@ -51,6 +51,7 @@ import {
   FormLabel,
   FormMessage,
 } from '../ui/form';
+import { useUser } from '@/hooks/use-user';
 
 const updateStockSchema = z.object({
   stock: z.coerce
@@ -78,6 +79,7 @@ export function MedicineActions({
   const [isEditPending, startEditTransition] = useTransition();
   const [isDeletePending, startDeleteTransition] = useTransition();
   const {toast} = useToast();
+  const { user } = useUser();
 
   const [isEditOpen, setEditOpen] = useState(false);
   const [isDispenseOpen, setDispenseOpen] = useState(false);
@@ -95,13 +97,26 @@ export function MedicineActions({
       quantity: 1,
     },
   });
+  
+  const checkUser = () => {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'You must be logged in to perform this action.',
+        });
+        return false;
+    }
+    return true;
+  }
 
   function onDispenseSubmit(values: z.infer<typeof dispenseSchema>) {
+    if (!checkUser()) return;
     startDispenseTransition(async () => {
       const result = await dispenseMedicineAction({
         id: medicine.id,
         quantity: values.quantity,
-      });
+      }, user!.fullName || user!.email!);
       if (result.success) {
         toast({
           title: 'Success',
@@ -119,8 +134,9 @@ export function MedicineActions({
   };
 
   const handleRefill = () => {
+    if (!checkUser()) return;
     startRefillTransition(async () => {
-      const result = await requestRefillAction(medicine.id);
+      const result = await requestRefillAction(medicine.id, user!.fullName || user!.email!);
       if (result.success) {
         toast({
           title: 'Refill Requested',
@@ -137,11 +153,12 @@ export function MedicineActions({
   };
 
   function onEditSubmit(values: z.infer<typeof updateStockSchema>) {
+    if (!checkUser()) return;
     startEditTransition(async () => {
       const result = await updateMedicineStockAction({
         id: medicine.id,
         stock: values.stock,
-      });
+      }, user!.fullName || user!.email!);
       if (result.success) {
         toast({
           title: 'Success',
@@ -159,8 +176,9 @@ export function MedicineActions({
   }
 
   const handleDelete = () => {
+    if (!checkUser()) return;
     startDeleteTransition(async () => {
-      const result = await deleteMedicineAction(medicine.id);
+      const result = await deleteMedicineAction(medicine.id, user!.fullName || user!.email!);
       if (result.success) {
         toast({
           title: 'Success',

@@ -1,6 +1,6 @@
 
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert} from '@/lib/types';
+import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert, Profile} from '@/lib/types';
 import { subDays, formatISO } from 'date-fns';
 import { logVisitSchema } from './types';
 import { z } from 'zod';
@@ -42,6 +42,20 @@ const toSnakeCase = (obj: any): any => {
 
 // Data access layer using Supabase
 export const db = {
+  // Profile
+  getProfile: async (userId: string): Promise<Profile | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (error && error.code !== 'PGRST116') { // PGRST116: 'No rows found'
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+    return data ? toCamelCase(data) as Profile : null;
+  },
+  
   // Visits
   getVisits: async (): Promise<StudentVisit[]> => {
     const {data, error} = await supabase
@@ -191,7 +205,7 @@ export const db = {
   addActivityLog: async (
     actionType: string,
     details: Record<string, any>,
-    userName = 'Nurse Jackie' // Default user for now
+    userName: string
   ): Promise<boolean> => {
     const logEntry = {
       user_name: userName,

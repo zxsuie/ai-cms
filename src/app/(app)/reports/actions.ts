@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 type ReportType = 'weekly' | 'monthly';
 
-export async function generateReportAction(reportType: ReportType) {
+export async function generateReportAction(reportType: ReportType, userName: string) {
   try {
     const visitData = await db.getVisits();
     const medicineData = await db.getMedicines();
@@ -19,7 +19,7 @@ export async function generateReportAction(reportType: ReportType) {
       appointmentData: JSON.stringify(appointmentData), // Pass appointments to AI
     });
 
-    await db.addActivityLog('report_generated', { reportType });
+    await db.addActivityLog('report_generated', { reportType }, userName);
     revalidatePath('/logs');
 
     return { success: true, report: result };

@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Lightbulb, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useUser } from '@/hooks/use-user';
 
 type VisitFormValues = z.infer<typeof logVisitSchema>;
 
@@ -27,6 +28,7 @@ export function VisitLogForm() {
   const [isSuggestionLoading, setSuggestionLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
   const { toast } = useToast();
+  const { user } = useUser();
 
   const form = useForm<VisitFormValues>({
     resolver: zodResolver(logVisitSchema),
@@ -66,8 +68,16 @@ export function VisitLogForm() {
   }, [symptomsValue]);
 
   function onSubmit(data: VisitFormValues) {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'You must be logged in to perform this action.',
+        });
+        return;
+    }
     startTransition(async () => {
-      const result = await logStudentVisit(data);
+      const result = await logStudentVisit(data, user.fullName || user.email || 'Unknown User');
       if (result.success) {
         toast({
           title: 'Success',
