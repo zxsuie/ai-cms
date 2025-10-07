@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { authenticate, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +37,7 @@ function GoogleButton() {
 }
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">

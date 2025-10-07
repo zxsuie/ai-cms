@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { signup } from '@/app/signup/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ function SignupButton() {
 }
 
 export default function SignupPage() {
-  const [state, dispatch] = useFormState(signup, { message: null, success: false });
+  const [state, dispatch] = useActionState(signup, { message: null, success: false });
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
