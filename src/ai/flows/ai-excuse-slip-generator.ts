@@ -41,6 +41,7 @@ const prompt = ai.definePrompt({
 3.  **Body Paragraph 2 (Action/Recommendation):** Briefly explain the assessment or action taken. For instance, "Upon assessment, the student was advised to rest and was monitored in the clinic." or "The student was given appropriate first aid and allowed to return to class after observation."
 4.  **Closing:** Politely request that the student's absence from class during that time be excused.
 5.  **Signature:** End with "Sincerely," followed by "Nurse Manuel" and then "School Clinic".
+6.  **Formatting**: Use Markdown for bolding key information like the student's name, but do not use any other complex markdown.
 
 **Input Data:**
 *   Student Name: {{{studentName}}}
@@ -54,7 +55,7 @@ const prompt = ai.definePrompt({
 
 To Whom It May Concern,
 
-This is to certify that [Student Name] visited the school clinic on [Visit Date] due to [professional description of reason and symptoms].
+This is to certify that **{{{studentName}}}** visited the school clinic on **{{{visitDate}}}** due to [professional description of reason and symptoms].
 
 Upon assessment, the student was [action taken, e.g., advised to rest in the clinic]. He/She is now cleared to return to class.
 
@@ -78,7 +79,6 @@ const generateExcuseSlipFlow = ai.defineFlow(
     }
     // A simple text replace to make the output cleaner and remove the markdown from the AI.
     let cleanedText = output.excuseSlipText.replace(/#+\s/g, '');
-    cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '$1');
     return { excuseSlipText: cleanedText };
   }
 );
