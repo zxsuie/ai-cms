@@ -133,5 +133,19 @@ export async function generatePdfReport(report: GenerateAiReportOutput, type: 'w
     addFooter(doc);
     
     const fileName = `Detailed_Report_Nurse-Manuel_${format(today, 'yyyy-MM-dd_HHmm')}.pdf`;
-    doc.save(fileName);
+    
+    // Generate the PDF output with password protection
+    const pdfOutput = doc.output('blob', {
+        userPassword: 'admin123'
+    });
+
+    // Create a URL and trigger the download
+    const url = URL.createObjectURL(pdfOutput);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
