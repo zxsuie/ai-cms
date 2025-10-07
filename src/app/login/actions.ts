@@ -69,16 +69,18 @@ export async function authenticate(
 
 
 export async function signInWithGoogle() {
+    const redirectTo = 'https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback';
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`,
+            redirectTo: redirectTo,
         },
     });
 
     if (error) {
         console.error('Google Sign In Error:', error);
-        redirect('/login?error=oauth_error');
+        redirect(`/login?error=oauth_error&message=${encodeURIComponent(error.message)}`);
     } else if (data.url) {
         redirect(data.url);
     } else {
