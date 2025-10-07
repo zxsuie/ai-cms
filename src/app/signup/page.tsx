@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useActionState } from 'react';
@@ -61,7 +60,7 @@ export default function SignupPage() {
                     <CardHeader>
                     <CardTitle className="text-2xl font-headline">
                         Create an Account
-                    </Title>
+                    </CardTitle>
                     <CardDescription>
                         Enter your details to create a new admin account.
                     </CardDescription>
