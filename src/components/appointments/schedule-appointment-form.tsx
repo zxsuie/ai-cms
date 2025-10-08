@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { Label } from '../ui/label';
+import { useUser } from '@/hooks/use-user';
 
 // Wrapper to ensure Calendar only renders on the client
 function ClientCalendar({
@@ -65,8 +66,9 @@ const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 export function ScheduleAppointmentForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const { appointments } = useAppointments();
+  const { appointments } = useAppointments({ filter: 'all' }); // Fetch all for conflict checking
   const [isClient, setIsClient] = useState(false);
+  const { user, loading } = useUser();
 
   useEffect(() => {
     setIsClient(true);
@@ -84,7 +86,22 @@ export function ScheduleAppointmentForm() {
     },
   });
 
+  // Populate form with user data if available
+  useEffect(() => {
+    if (user && !loading) {
+        const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+        if (!isAdmin) {
+            form.setValue('studentName', user.fullName || '');
+            // You might want to populate these from the user's profile as well
+            if (user.course) form.setValue('studentYear', user.course);
+            if (user.studentSection) form.setValue('studentSection', user.studentSection);
+        }
+    }
+  }, [user, loading, form]);
+
+
   const selectedDate = form.watch('date');
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   const isTimeSlotBooked = (time: string, date: Date, existingAppointments: Appointment[]): boolean => {
     if (!date) return false;
@@ -108,14 +125,24 @@ export function ScheduleAppointmentForm() {
           title: 'Success',
           description: result.message,
         });
-        form.reset({
-          studentName: '',
-          studentYear: '',
-          studentSection: '',
-          reason: '',
-          date: undefined,
-          time: '',
-        });
+        // Don't reset user-populated fields for non-admins
+        if(isAdmin) {
+          form.reset({
+            studentName: '',
+            studentYear: '',
+            studentSection: '',
+            reason: '',
+            date: undefined,
+            time: '',
+          });
+        } else {
+            form.reset({
+                ...form.getValues(),
+                reason: '',
+                date: undefined,
+                time: ''
+            })
+        }
       } else {
         toast({
           variant: 'destructive',
@@ -125,62 +152,71 @@ export function ScheduleAppointmentForm() {
       }
     });
   }
+  
+  if (loading) {
+    return <Skeleton className="h-96 w-full" />
+  }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="studentName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Student Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Jane Smith" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="studentYear"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select year level" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {yearLevels.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="studentSection"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Section</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. BSCS-2A" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {isAdmin && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                    control={form.control}
+                    name="studentName"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Student Name</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g. Jane Smith" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="studentYear"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Year</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Select year level" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {yearLevels.map(year => (
+                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                </div>
+        )}
+        
+        {isAdmin && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+                control={form.control}
+                name="studentSection"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Section</FormLabel>
+                    <FormControl>
+                    <Input placeholder="e.g. BSCS-2A" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            </div>
+        )}
         <FormField
           control={form.control}
           name="reason"

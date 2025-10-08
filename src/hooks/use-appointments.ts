@@ -6,14 +6,23 @@ import { db } from '@/lib/db';
 import type { Appointment } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 
-export function useAppointments() {
+interface UseAppointmentsOptions {
+  filter?: 'all' | 'user';
+  userName?: string | null;
+}
+
+export function useAppointments(options: UseAppointmentsOptions = { filter: 'all' }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { filter, userName } = options;
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await db.getAppointments();
+      const data = await db.getAppointments({
+        filter: filter,
+        userName: userName,
+      });
       setAppointments(data);
     } catch (error) {
       console.error("Failed to fetch appointments:", error);
@@ -21,9 +30,16 @@ export function useAppointments() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filter, userName]);
 
   useEffect(() => {
+    // Only fetch if we have the required data for filtering
+    if (filter === 'user' && !userName) {
+      setLoading(false);
+      setAppointments([]); // Clear appointments if user is not available
+      return;
+    }
+
     fetchAppointments();
 
     const channel = supabase
@@ -32,7 +48,6 @@ export function useAppointments() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'appointments' },
         (payload) => {
-          // Refetch all appointments when a change is detected
           fetchAppointments();
         }
       )
@@ -41,7 +56,7 @@ export function useAppointments() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchAppointments]);
+  }, [fetchAppointments, filter, userName]);
 
   return { appointments, loading };
 }

@@ -4,10 +4,18 @@
 import { useAppointments } from "@/hooks/use-appointments";
 import { Appointment } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
-import { parse, format, isFuture, isToday, compareAsc } from "date-fns";
+import { parse, format, compareAsc } from "date-fns";
+import { useUser } from "@/hooks/use-user";
 
 export function UpcomingAppointments() {
-  const { appointments, loading } = useAppointments();
+  const { user, loading: userLoading } = useUser();
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const { appointments, loading: appointmentsLoading } = useAppointments({
+    filter: isAdmin ? 'all' : 'user',
+    userName: user?.fullName
+  });
+
+  const loading = userLoading || appointmentsLoading;
 
   if (loading) {
     return (

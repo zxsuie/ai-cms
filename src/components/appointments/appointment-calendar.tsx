@@ -9,10 +9,17 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {ScrollArea} from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
+import { useUser } from '@/hooks/use-user';
 
 export function AppointmentCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const {appointments, loading} = useAppointments();
+  const { user, loading: userLoading } = useUser();
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const {appointments, loading: appointmentsLoading} = useAppointments({
+    filter: isAdmin ? 'all' : 'user',
+    userName: user?.fullName
+  });
+  const loading = userLoading || appointmentsLoading;
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

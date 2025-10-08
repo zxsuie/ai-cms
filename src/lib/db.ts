@@ -185,12 +185,19 @@ export const db = {
   },
 
   // Appointments
-  getAppointments: async (): Promise<Appointment[]> => {
-    const {data, error} = await supabase
+  getAppointments: async (options: { filter?: 'all' | 'user'; userName?: string | null; } = {}): Promise<Appointment[]> => {
+    const { filter = 'all', userName } = options;
+    let query = supabase
       .from('appointments')
       .select('*')
       .order('appointment_date', {ascending: true})
       .order('appointment_time', {ascending: true});
+    
+    if (filter === 'user' && userName) {
+        query = query.eq('student_name', userName);
+    }
+
+    const {data, error} = await query;
     if (error) throw error;
     return toCamelCase(data) as Appointment[];
   },
