@@ -1,26 +1,51 @@
--- First, we need to add the new roles to the existing 'role' enum type.
--- Supabase uses enums for roles with RLS, so we alter the type.
--- Note: The type name might be different in your project (e.g., app_role).
--- Please verify the type name in your Supabase project's database types.
--- This command is idempotent; it won't add the value if it already exists.
 
-ALTER TYPE public.role ADD VALUE IF NOT EXISTS 'student';
-ALTER TYPE public.role ADD VALUE IF NOT EXISTS 'staff';
-ALTER TYPE public.role ADD VALUE IF NOT EXISTS 'employee';
+-- Step 1: Create the new ENUM type for user roles.
+-- This defines a list of accepted values for roles.
+CREATE TYPE public.user_role AS ENUM (
+  'admin',
+  'super_admin',
+  'student',
+  'staff',
+  'employee'
+);
 
-
--- Second, we add the new nullable columns to the 'profiles' table.
--- They are nullable because a student won't have a 'department',
--- and an admin won't have a 'course'.
-
+-- Step 2: Alter the 'profiles' table to use the new 'user_role' type.
+-- We'll change the column type from 'text' to 'user_role'.
+-- It also changes the default role for new sign-ups to 'student'.
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS course TEXT,
-  ADD COLUMN IF NOT EXISTS student_section TEXT,
-  ADD COLUMN IF NOT EXISTS department TEXT,
-  ADD COLUMN IF NOT EXISTS job_title TEXT;
+  ALTER COLUMN role DROP DEFAULT,
+  ALTER COLUMN role TYPE public.user_role USING role::public.user_role,
+  ALTER COLUMN role SET DEFAULT 'student'::public.user_role;
 
--- Add comments to the new columns for clarity
-COMMENT ON COLUMN public.profiles.course IS 'The course of study for a student.';
-COMMENT ON COLUMN public.profiles.student_section IS 'The section or class for a student.';
-COMMENT ON COLUMN public.profiles.department IS 'The department for an employee or staff member.';
-COMMENT ON COLUMN public.profiles.job_title IS 'The job title for an employee or staff member.';
+-- Step 3: Add new columns to the 'profiles' table for role-specific data.
+-- These columns are all optional (nullable) since they only apply to certain roles.
+ALTER TABLE public.profiles
+  ADD COLUMN course TEXT,
+  ADD COLUMN student_section TEXT,
+  ADD COLUMN department TEXT,
+  ADD COLUMN job_title TEXT;
+
+-- Step 4: Update the 'handle_new_user' function to set the default role.
+-- This function is triggered when a new user signs up. We're setting the default
+-- role to 'student' to align with the new public-facing registration flow.
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, avatar_url, role)
+  VALUES (
+    new.id,
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'avatar_url',
+    'student' -- Default role for all new users is now 'student'.
+  );
+  return new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Step 5: Re-create the trigger to call the updated function.
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
