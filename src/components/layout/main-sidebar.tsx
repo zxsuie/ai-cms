@@ -11,15 +11,17 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, ShieldCheck, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '../ui/skeleton';
 import { LogVisitButton } from '../dashboard/log-visit-button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
+
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -65,7 +67,6 @@ export function MainSidebar() {
                     <Skeleton className="h-3 w-16" />
                 </div>
             </div>
-            <Skeleton className="w-full h-9" />
           </SidebarFooter>
       </Sidebar>
     );
@@ -121,21 +122,35 @@ export function MainSidebar() {
             </SidebarGroup>
          )}
       </SidebarMenu>
-      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
-         <div className="flex items-center gap-3 p-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.fullName || 'User'} />
-            <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
-          <div className="group-data-[collapsible=icon]:hidden">
-            <p className="font-semibold text-sm text-sidebar-foreground">{user?.fullName || user?.email}</p>
-            <p className="text-xs text-sidebar-foreground/70 capitalize">{user?.role?.replace('_', ' ')}</p>
-          </div>
-        </div>
-        <Button variant="ghost" className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span className="group-data-[collapsible=icon]:hidden">Log Out</span>
-        </Button>
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start h-auto p-2">
+                    <div className="flex items-center justify-start gap-3 w-full">
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.fullName || 'User'} />
+                            <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="group-data-[collapsible=icon]:hidden text-left">
+                            <p className="font-semibold text-sm text-sidebar-foreground">{user?.fullName || user?.email}</p>
+                            <p className="text-xs text-sidebar-foreground/70 capitalize">{user?.role?.replace('_', ' ')}</p>
+                        </div>
+                    </div>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Edit Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log Out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );
