@@ -2,7 +2,6 @@
 import { MainSidebar } from '@/components/layout/main-sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { VisitLogForm } from '@/components/dashboard/visit-log-form';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
