@@ -24,6 +24,50 @@ export const addMedicineSchema = z.object({
     threshold: z.coerce.number().int().min(0, 'Threshold must be a non-negative integer.'),
 });
 
+const studentSchema = z.object({
+  role: z.literal('student'),
+  course: z.string().min(1, 'Course is required'),
+  studentSection: z.string().min(1, 'Section is required'),
+  department: z.string().optional(),
+  jobTitle: z.string().optional(),
+});
+
+const employeeSchema = z.object({
+  role: z.union([z.literal('employee'), z.literal('staff')]),
+  department: z.string().min(1, 'Department is required'),
+  jobTitle: z.string().min(1, 'Job title is required'),
+  course: z.string().optional(),
+  studentSection: z.string().optional(),
+});
+
+const adminSchema = z.object({
+    role: z.union([z.literal('admin'), z.literal('super_admin')]),
+    course: z.string().optional(),
+    studentSection: z.string().optional(),
+    department: z.string().optional(),
+    jobTitle: z.string().optional(),
+});
+
+// This schema will be used for the new dynamic signup form
+export const signupSchema = z.discriminatedUnion('role', [
+    studentSchema.extend({
+        fullName: z.string().min(2, 'Full name is required'),
+        email: z.string().email('Invalid email address'),
+        password: z.string().min(6, 'Password must be at least 6 characters long'),
+    }),
+    employeeSchema.extend({
+        fullName: z.string().min(2, 'Full name is required'),
+        email: z.string().email('Invalid email address'),
+        password: z.string().min(6, 'Password must be at least 6 characters long'),
+    }),
+    adminSchema.extend({ // Keep admin roles for potential internal creation
+        fullName: z.string().min(2, 'Full name is required'),
+        email: z.string().email('Invalid email address'),
+        password: z.string().min(6, 'Password must be at least 6 characters long'),
+    }),
+]);
+
+
 export type StudentVisit = {
   id: string; // UUID
   timestamp: string;
@@ -75,5 +119,9 @@ export type Profile = {
     id: string; // UUID
     fullName?: string;
     avatarUrl?: string;
-    role: 'admin' | 'super_admin';
+    role: 'admin' | 'super_admin' | 'student' | 'employee' | 'staff';
+    course?: string;
+    studentSection?: string;
+    department?: string;
+    jobTitle?: string;
 }
