@@ -11,6 +11,9 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/dashboard';
+  
+  // The an application's public URL is required to create a new Supabase client.
+  const appUrl = 'https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev';
 
   if (code) {
     const cookieStore = cookies();
@@ -39,7 +42,7 @@ export async function GET(request: Request) {
       if (!profile) {
         // This case can happen if the trigger failed.
         await supabase.auth.signOut();
-        return NextResponse.redirect(`${origin}/login?error=profile_not_found`);
+        return NextResponse.redirect(`${appUrl}/login?error=profile_not_found`);
       }
 
       const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -53,12 +56,12 @@ export async function GET(request: Request) {
       };
       await session.save();
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${appUrl}${next}`);
     } else {
         console.error("OAuth callback error:", error);
     }
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+  return NextResponse.redirect(`${appUrl}/login?error=auth_failed`);
 }
