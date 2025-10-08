@@ -7,17 +7,13 @@ import { VisitTrendsChart } from '@/components/dashboard/visit-trends-chart';
 import { UpcomingAppointments } from '@/components/appointments/upcoming-appointments';
 import { SymptomDistributionChart } from '@/components/dashboard/symptom-distribution-chart';
 import { VisitsDataTable } from '@/components/dashboard/visits-data-table';
-import { LogVisitButton } from '@/components/dashboard/log-visit-button';
+import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h1 className="text-3xl font-headline font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground">An overview of the clinic's activities and key metrics.</p>
-        </div>
-        
+        <DashboardGreeting />
       </div>
       
       {/* Stat Cards */}
