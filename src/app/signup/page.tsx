@@ -100,6 +100,16 @@ export default function SignupPage() {
                         />
                          <p className="text-xs text-muted-foreground">Password must be at least 6 characters long.</p>
                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          required
+                          minLength={6}
+                        />
+                    </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>

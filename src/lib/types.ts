@@ -24,14 +24,15 @@ export const addMedicineSchema = z.object({
     threshold: z.coerce.number().int().min(0, 'Threshold must be a non-negative integer.'),
 });
 
-// Base schema for common fields
+// Base schema for common fields, including password confirmation
 const baseUserSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
+  confirmPassword: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
-// Schemas for each specific role
+// Schemas for each specific role, extending the base schema
 const studentSchema = baseUserSchema.extend({
   role: z.literal('student'),
   course: z.string().min(1, 'Course is required'),
@@ -55,7 +56,7 @@ const adminSchema = baseUserSchema.extend({
 });
 
 const superAdminSchema = baseUserSchema.extend({
-  role: z.literal('super_admin'),
+    role: z.literal('super_admin'),
 });
 
 // This schema will be used for the new dynamic signup form
@@ -65,7 +66,10 @@ export const signupSchema = z.discriminatedUnion('role', [
   staffSchema,
   adminSchema,
   superAdminSchema,
-]);
+]).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'], // Set the error on the confirm password field
+});
 
 
 export type StudentVisit = {
