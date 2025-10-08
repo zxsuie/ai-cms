@@ -36,7 +36,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
                 full_name: fullName,
                 // The role will be set by the database trigger
             },
-            emailRedirectTo, // Ensure verification email is sent
+            emailRedirectTo, // Ensure verification email is sent with the correct callback URL
         },
     });
 
