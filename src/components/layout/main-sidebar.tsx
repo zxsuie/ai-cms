@@ -89,11 +89,6 @@ export function MainSidebar() {
         </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1 p-2">
-        {['admin', 'super_admin'].includes(userRole) && (
-            <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
-                <LogVisitButton />
-            </div>
-        )}
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.href}>
             <SidebarMenuButton

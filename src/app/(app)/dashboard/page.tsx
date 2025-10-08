@@ -17,7 +17,7 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-headline font-bold tracking-tight">Admin Dashboard</h1>
             <p className="text-muted-foreground">An overview of the clinic's activities and key metrics.</p>
         </div>
-        <LogVisitButton />
+        
       </div>
       
       {/* Stat Cards */}
