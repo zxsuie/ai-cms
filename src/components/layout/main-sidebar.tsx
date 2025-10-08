@@ -23,16 +23,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from '../ui/button';
 
 
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/inventory', label: 'Inventory', icon: Boxes },
-  { href: '/appointments', label: 'Appointments', icon: CalendarDays },
-  { href: '/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/logs', label: 'Logs', icon: ScrollText },
+const allMenuItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
+  { href: '/inventory', label: 'Inventory', icon: Boxes, roles: ['admin', 'super_admin'] },
+  { href: '/appointments', label: 'Appointments', icon: CalendarDays, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
+  { href: '/reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'super_admin'] },
+  { href: '/logs', label: 'Logs', icon: ScrollText, roles: ['super_admin'] },
 ];
 
 const superAdminItems = [
-    { href: '/security', label: 'Security', icon: ShieldCheck },
+    { href: '/security', label: 'Security', icon: ShieldCheck, roles: ['super_admin'] },
 ]
 
 export function MainSidebar() {
@@ -55,7 +55,7 @@ export function MainSidebar() {
               <Skeleton className="w-32 h-8" />
           </SidebarHeader>
           <SidebarMenu className="flex-1 p-2">
-            {menuItems.map((item) => (
+            {allMenuItems.map((item) => (
                 <Skeleton key={item.href} className="w-full h-10 mb-2" />
             ))}
           </SidebarMenu>
@@ -72,6 +72,10 @@ export function MainSidebar() {
     );
   }
 
+  const userRole = user?.role || '';
+  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
+
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
@@ -85,9 +89,11 @@ export function MainSidebar() {
         </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1 p-2">
-        <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
-            <LogVisitButton />
-        </div>
+        {['admin', 'super_admin'].includes(userRole) && (
+            <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+                <LogVisitButton />
+            </div>
+        )}
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
