@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
-import { sessionOptions, type SessionData, defaultSession } from '@/lib/session';
+import { sessionOptions, type SessionData } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 import { db } from '@/lib/db';
@@ -75,6 +75,10 @@ export async function signInWithGoogle() {
         provider: 'google',
         options: {
             redirectTo: redirectTo,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
         },
     });
 
