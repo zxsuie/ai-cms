@@ -25,6 +25,9 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
     const { fullName, email, password } = parsed.data;
 
+    // The redirect URL for the email verification link
+    const emailRedirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
+
     const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -33,6 +36,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
                 full_name: fullName,
                 // The role will be set by the database trigger
             },
+            emailRedirectTo, // Ensure verification email is sent
         },
     });
 
