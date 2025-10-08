@@ -3,12 +3,7 @@
 
 import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
-
-const signupSchema = z.object({
-    fullName: z.string().min(2, 'Full name is required'),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters long'),
-});
+import { signupSchema } from '@/lib/types';
 
 type SignupState = {
     message: string | null;
@@ -23,7 +18,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
         return { message: errorMessages, success: false };
     }
 
-    const { fullName, email, password } = parsed.data;
+    const { email, password, fullName, ...profileData } = parsed.data;
 
     // The redirect URL for the email verification link
     const emailRedirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
@@ -34,9 +29,9 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
         options: {
             data: {
                 full_name: fullName,
-                // The role will be set by the database trigger
+                ...profileData,
             },
-            emailRedirectTo, // Ensure verification email is sent with the correct callback URL
+            emailRedirectTo,
         },
     });
 
