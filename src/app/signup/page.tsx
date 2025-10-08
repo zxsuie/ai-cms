@@ -29,6 +29,21 @@ function SignupButton() {
   );
 }
 
+const courses = [
+    { value: 'BSHM', label: 'BSHM – Bachelor of Science in Hospitality Management' },
+    { value: 'BSTM', label: 'BSTM – Bachelor of Science in Tourism Management' },
+    { value: 'BSP', label: 'BSP – Bachelor of Science in Psychology' },
+    { value: 'BLIS', label: 'BLIS – Bachelor of Library and Information Science' },
+    { value: 'CTE', label: 'CTE – College of Teacher Education' },
+    { value: 'BSIT', label: 'BSIT – Bachelor of Science in Information Technology' },
+    { value: 'BSCPE', label: 'BSCPE – Bachelor of Science in Computer Engineering' },
+    { value: 'BSBA', label: 'BSBA – Bachelor of Science in Business Administration' },
+    { value: 'BSENTREP', label: 'BSENTREP – Bachelor of Science in Entrepreneurship' },
+    { value: 'BSOA', label: 'BSOA – Bachelor of Science in Office Administration' },
+    { value: 'BSAIS', label: 'BSAIS – Bachelor of Science in Accounting Information System' },
+    { value: 'BS CRIM', label: 'BS CRIM – Bachelor of Science in Criminology' },
+];
+
 export default function SignupPage() {
   const [state, dispatch] = useActionState(signup, { message: null, success: false });
   const [role, setRole] = useState<'student' | 'employee' | 'staff' | ''>('');
@@ -129,7 +144,16 @@ export default function SignupPage() {
                         <>
                             <div className="space-y-2">
                                 <Label htmlFor="course">Course</Label>
-                                <Input id="course" name="course" placeholder="e.g. BS in Computer Science" required />
+                                <Select name="course" required>
+                                    <SelectTrigger id="course">
+                                        <SelectValue placeholder="Select your course" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courses.map(course => (
+                                            <SelectItem key={course.value} value={course.value}>{course.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="studentSection">Section</Label>
