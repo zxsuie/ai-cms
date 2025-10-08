@@ -19,10 +19,14 @@ export function useAppointments(options: UseAppointmentsOptions = { filter: 'all
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await db.getAppointments({
-        filter: filter,
-        userName: userName,
-      });
+      let data;
+      if (filter === 'user' && userName) {
+        data = await db.getAppointments({ filter: 'user', userName });
+      } else if (filter === 'all') {
+        data = await db.getAppointments({ filter: 'all' });
+      } else {
+        data = [];
+      }
       setAppointments(data);
     } catch (error) {
       console.error("Failed to fetch appointments:", error);
@@ -33,14 +37,16 @@ export function useAppointments(options: UseAppointmentsOptions = { filter: 'all
   }, [filter, userName]);
 
   useEffect(() => {
-    // Only fetch if we have the required data for filtering
-    if (filter === 'user' && !userName) {
+    // Determine if we are ready to fetch
+    const canFetch = filter === 'all' || (filter === 'user' && !!userName);
+
+    if (canFetch) {
+      fetchAppointments();
+    } else {
       setLoading(false);
-      setAppointments([]); // Clear appointments if user is not available
+      setAppointments([]);
       return;
     }
-
-    fetchAppointments();
 
     const channel = supabase
       .channel('appointments-changes')

@@ -12,22 +12,11 @@ import { PastAppointments } from "@/components/appointments/past-appointments";
 
 function AdminAppointmentView() {
   return (
-     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Schedule New Appointment</CardTitle>
-              <CardDescription>Fill out the form below to add a new appointment for a student.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScheduleAppointmentForm />
-            </CardContent>
-          </Card>
-        </div>
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming</CardTitle>
+              <CardTitle>Upcoming Appointments</CardTitle>
               <CardDescription>Next scheduled appointments for all users.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -35,6 +24,19 @@ function AdminAppointmentView() {
                 <UpcomingAppointments />
               </Suspense>
             </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-1">
+           <Card>
+              <CardHeader>
+                  <CardTitle>All Past Appointments</CardTitle>
+                  <CardDescription>A record of all completed appointments.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                      <PastAppointments />
+                  </Suspense>
+              </CardContent>
           </Card>
         </div>
       </div>
@@ -104,7 +106,7 @@ export default function AppointmentsPage() {
       <div>
         <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Scheduling</h1>
         <p className="text-muted-foreground">
-          {isAdmin ? "Schedule and manage all student appointments." : "Schedule and manage your appointments."}
+          {isAdmin ? "Manage all student appointments." : "Schedule and manage your appointments."}
         </p>
       </div>
       
@@ -122,4 +124,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-

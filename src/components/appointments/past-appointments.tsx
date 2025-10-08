@@ -17,10 +17,13 @@ import {
 
 export function PastAppointments() {
   const { user, loading: userLoading } = useUser();
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  
   const { appointments, loading: appointmentsLoading } = useAppointments({
-    filter: 'user',
+    filter: isAdmin ? 'all' : 'user',
     userName: user?.fullName
   });
+
   const loading = userLoading || appointmentsLoading;
 
   if (loading) {
@@ -49,10 +52,11 @@ export function PastAppointments() {
   }
 
   return (
-     <div className="w-full overflow-x-auto rounded-md border">
+     <div className="w-full overflow-x-auto rounded-md border max-h-96">
         <Table>
             <TableHeader>
             <TableRow>
+                {isAdmin && <TableHead>Student</TableHead>}
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Reason</TableHead>
@@ -61,6 +65,7 @@ export function PastAppointments() {
             <TableBody>
             {pastAppointments.map((appt: Appointment) => (
                 <TableRow key={appt.id}>
+                    {isAdmin && <TableCell>{appt.studentName}</TableCell>}
                     <TableCell>{format(parse(appt.appointmentDate, 'yyyy-MM-dd', new Date()), 'PP')}</TableCell>
                     <TableCell>{format(new Date(`1970-01-01T${appt.appointmentTime}`), 'p')}</TableCell>
                     <TableCell>{appt.reason}</TableCell>
