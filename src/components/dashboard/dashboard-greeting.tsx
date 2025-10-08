@@ -29,10 +29,12 @@ export function DashboardGreeting() {
     )
   }
 
+  const firstName = user?.fullName?.split(' ')[0] || user?.email;
+
   return (
     <div>
       <h1 className="text-3xl font-headline font-bold tracking-tight">
-        {greeting}, {user?.fullName || user?.email}!
+        {greeting}, {firstName}!
       </h1>
       <p className="text-muted-foreground">
         Here's an overview of the clinic's activities and key metrics.
