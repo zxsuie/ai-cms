@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
 import { authenticate, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,9 +15,9 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 function LoginButton() {
   const { pending } = useFormStatus();
@@ -38,6 +39,17 @@ function GoogleButton() {
 
 export default function LoginPage() {
   const [errorMessage, dispatch] = useActionState(authenticate, undefined);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (errorMessage) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: errorMessage,
+      });
+    }
+  }, [errorMessage, toast]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -72,13 +84,6 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              {errorMessage && (
-                <Alert variant="destructive" className="text-xs">
-                  <Terminal className="h-4 w-4" />
-                  <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
-              )}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <LoginButton />
