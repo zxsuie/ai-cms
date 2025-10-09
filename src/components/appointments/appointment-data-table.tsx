@@ -28,7 +28,7 @@ import { useAppointments } from "@/hooks/use-appointments"
 import { Appointment, Profile } from "@/lib/types"
 import { format, parse } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
-import { db } from "@/lib/db"
+import { supabase } from "@/lib/supabase"
 
 const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
     {
@@ -72,7 +72,7 @@ export function AppointmentDataTable() {
   // Fetch profiles to link roles to appointments
   React.useEffect(() => {
     async function fetchProfiles() {
-        const { data, error } = await db.supabase.from('profiles').select('*');
+        const { data, error } = await supabase.from('profiles').select('*');
         if (data) setProfiles(data as Profile[]);
     }
     fetchProfiles();
