@@ -73,7 +73,15 @@ export function MainSidebar() {
   }
 
   const userRole = user?.role || '';
-  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
+  const menuItems = allMenuItems.filter(item => {
+    if (!item.roles.includes(userRole)) return false;
+    // Special handling for appointments page
+    if (item.href === '/appointments') {
+        // All roles see the "Appointments" link
+        return true;
+    }
+    return true;
+  });
 
 
   return (

@@ -22,10 +22,8 @@ export function useAppointments(options: UseAppointmentsOptions = { filter: 'all
       let data;
       if (filter === 'user' && userName) {
         data = await db.getAppointments({ filter: 'user', userName });
-      } else if (filter === 'all') {
+      } else { // filter 'all' or if userName is not yet available
         data = await db.getAppointments({ filter: 'all' });
-      } else {
-        data = [];
       }
       setAppointments(data);
     } catch (error) {
@@ -37,16 +35,21 @@ export function useAppointments(options: UseAppointmentsOptions = { filter: 'all
   }, [filter, userName]);
 
   useEffect(() => {
-    // Determine if we are ready to fetch
     const canFetch = filter === 'all' || (filter === 'user' && !!userName);
 
     if (canFetch) {
       fetchAppointments();
     } else {
-      setLoading(false);
+      // Don't fetch yet if we are waiting for a username
+      if (filter === 'user' && !userName) {
+          setLoading(true); // Keep loading state until username is available
+      } else {
+           setLoading(false);
+      }
       setAppointments([]);
       return;
     }
+
 
     const channel = supabase
       .channel('appointments-changes')

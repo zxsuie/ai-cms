@@ -14,12 +14,13 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.includes(pathname);
   
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-  const defaultPage = isAdmin ? '/dashboard' : '/appointments';
+  const defaultPage = isAdmin ? '/dashboard' : '/'; // Default for non-admins is now root
   const isDashboard = pathname.startsWith('/dashboard');
 
-  // If a non-admin tries to access the dashboard, redirect them
-  if (isLoggedIn && !isAdmin && isDashboard) {
-      return NextResponse.redirect(new URL('/appointments', request.url));
+  // If a non-admin tries to access a protected admin route, redirect them.
+  const adminRoutes = ['/dashboard', '/inventory', '/reports', '/logs', '/security'];
+  if (isLoggedIn && !isAdmin && adminRoutes.some(p => pathname.startsWith(p))) {
+      return NextResponse.redirect(new URL('/', request.url));
   }
 
   // If trying to access a public path while logged in, redirect to default page
@@ -29,15 +30,23 @@ export async function middleware(request: NextRequest) {
 
   // If trying to access a protected path while not logged in, redirect to login
   if (!isLoggedIn && !isPublicPath && pathname !== '/') {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Allow access to /agreement, which redirects to /
+    if (pathname !== '/agreement') {
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   // Redirect root to appropriate page
   if (pathname === '/') {
     if (isLoggedIn) {
-        return NextResponse.redirect(new URL(defaultPage, request.url));
+        if (!isAdmin) {
+             // Non-admins should not be at root, redirect them to a default non-admin page if one exists
+             // For now, we can let them see the agreement page or a future user-dashboard
+        } else {
+             return NextResponse.redirect(new URL(defaultPage, request.url));
+        }
     }
-    return NextResponse.redirect(new URL('/agreement', request.url));
+    // For non-logged-in users, root path ('/') will render agreement page
   }
   
   return NextResponse.next();
