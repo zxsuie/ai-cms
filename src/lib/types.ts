@@ -11,8 +11,8 @@ export const logVisitSchema = z.object({
 
 export const scheduleAppointmentSchema = z.object({
   studentName: z.string().min(1, 'Student name is required'),
-  studentYear: z.string().min(1, 'Year level is required'),
-  studentSection: z.string().min(1, 'Section is required'),
+  studentYear: z.string().min(1, 'Year/Course or Department is required'),
+  studentSection: z.string().min(1, 'Section or Job Title is required'),
   reason: z.string().min(1, 'Reason for appointment is required'),
   date: z.date({ required_error: 'Please select a date.' }),
   time: z.string().min(1, 'Please select a time.'),
@@ -51,21 +51,11 @@ const staffSchema = baseUserSchema.extend({
   jobTitle: z.string().min(1, 'Job title is required'),
 });
 
-const adminSchema = baseUserSchema.extend({
-  role: z.literal('admin'),
-});
-
-const superAdminSchema = baseUserSchema.extend({
-    role: z.literal('super_admin'),
-});
-
 // This schema will be used for the new dynamic signup form
 export const signupSchema = z.discriminatedUnion('role', [
   studentSchema,
   employeeSchema,
   staffSchema,
-  adminSchema,
-  superAdminSchema,
 ]).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'], // Set the error on the confirm password field
@@ -121,6 +111,7 @@ export type ActivityLog = {
 
 export type Profile = {
     id: string; // UUID
+    email: string;
     fullName?: string;
     avatarUrl?: string;
     role: 'admin' | 'super_admin' | 'student' | 'employee' | 'staff';

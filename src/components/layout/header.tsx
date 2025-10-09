@@ -1,7 +1,9 @@
+
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { NotificationBell } from './notification-bell';
+import { LogVisitButton } from '../dashboard/log-visit-button';
 
 export function Header() {
   const pathname = usePathname();
@@ -11,6 +13,7 @@ export function Header() {
     '/reports': 'AI Reports',
     '/appointments': 'Appointment Scheduling',
     '/logs': 'Activity Logs',
+    '/security': 'Security',
   };
   const title = pageTitles[pathname] ?? 'iClinicMate';
   
@@ -23,6 +26,9 @@ export function Header() {
         <h1 className="text-xl font-headline font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-4">
+        <div className="hidden sm:block w-40">
+           <LogVisitButton />
+        </div>
         <NotificationBell />
       </div>
     </header>

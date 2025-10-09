@@ -6,9 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { VisitLogForm } from './visit-log-form';
 import { PlusCircle } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
 
 export function LogVisitButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
+
+  const canLogVisit = user?.role === 'admin' || user?.role === 'super_admin';
+
+  if (!canLogVisit) {
+    return null;
+  }
 
   return (
     <>
