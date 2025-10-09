@@ -12,34 +12,45 @@ import { PastAppointments } from "@/components/appointments/past-appointments";
 
 function AdminAppointmentView() {
   return (
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="lg:col-span-1">
-          <Card>
+     <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="lg:col-span-1">
+            <Card>
+                <CardHeader>
+                <CardTitle>Upcoming Appointments</CardTitle>
+                <CardDescription>Next scheduled appointments for all users.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                    <UpcomingAppointments />
+                </Suspense>
+                </CardContent>
+            </Card>
+            </div>
+            <div className="lg:col-span-1">
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Past Appointments</CardTitle>
+                    <CardDescription>A record of all completed appointments.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                        <PastAppointments />
+                    </Suspense>
+                </CardContent>
+            </Card>
+            </div>
+        </div>
+        <Card>
             <CardHeader>
-              <CardTitle>Upcoming Appointments</CardTitle>
-              <CardDescription>Next scheduled appointments for all users.</CardDescription>
+                <CardTitle>Book Appointment for User</CardTitle>
+                <CardDescription>Admins can schedule appointments on behalf of any user.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                <UpcomingAppointments />
-              </Suspense>
+                <ScheduleAppointmentForm />
             </CardContent>
-          </Card>
-        </div>
-        <div className="lg:col-span-1">
-           <Card>
-              <CardHeader>
-                  <CardTitle>All Past Appointments</CardTitle>
-                  <CardDescription>A record of all completed appointments.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                      <PastAppointments />
-                  </Suspense>
-              </CardContent>
-          </Card>
-        </div>
-      </div>
+        </Card>
+     </>
   );
 }
 
@@ -110,7 +121,9 @@ export default function AppointmentsPage() {
         </p>
       </div>
       
-      {isAdmin ? <AdminAppointmentView /> : <UserAppointmentView />}
+      <div className="space-y-6">
+        {isAdmin ? <AdminAppointmentView /> : <UserAppointmentView />}
+      </div>
       
        <Card>
           <CardHeader>

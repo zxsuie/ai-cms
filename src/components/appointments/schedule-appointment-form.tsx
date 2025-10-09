@@ -163,7 +163,7 @@ export function ScheduleAppointmentForm() {
                     name="studentName"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Student Name</FormLabel>
+                        <FormLabel>Student/Employee Name</FormLabel>
                         <FormControl>
                         <Input placeholder="e.g. Jane Smith" {...field} />
                         </FormControl>
@@ -176,28 +176,26 @@ export function ScheduleAppointmentForm() {
                     name="studentYear"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Year / Department</FormLabel>
+                        <FormLabel>Course / Department</FormLabel>
                          <Input placeholder="e.g. BSIT or HR Department" {...field} />
                         <FormMessage />
                     </FormItem>
                     )}
                 />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                  control={form.control}
-                  name="studentSection"
-                  render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Section / Job Title</FormLabel>
-                      <FormControl>
-                      <Input placeholder="e.g. BSCS-2A or Professor" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                  </FormItem>
-                  )}
-              />
-            </div>
+            <FormField
+                control={form.control}
+                name="studentSection"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Section / Job Title</FormLabel>
+                    <FormControl>
+                    <Input placeholder="e.g. BSCS-2A or Professor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
           </>
         ) : (
             // For non-admin users, these fields are hidden and pre-filled
