@@ -14,8 +14,18 @@ const NOTIFICATION_WINDOW_MINUTES = 15; // Show appointments within the next 15 
 export function NotificationBell() {
   const { appointments } = useAppointments();
   const [upcomingAppointments, setUpcomingAppointments] = useState<typeof appointments>([]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // This ensures the rest of the logic only runs on the client
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) {
+      return; // Don't run the interval on the server or during the initial client render
+    }
+
     const checkAppointments = () => {
       const now = new Date();
       const upcoming = appointments.filter(appt => {
@@ -36,7 +46,16 @@ export function NotificationBell() {
     const intervalId = setInterval(checkAppointments, 60 * 1000); // Check every minute
 
     return () => clearInterval(intervalId);
-  }, [appointments]);
+  }, [appointments, isClient]);
+
+  // Render nothing on the server to prevent mismatch
+  if (!isClient) {
+    return (
+        <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+        </Button>
+    );
+  }
 
   return (
     <Popover>
