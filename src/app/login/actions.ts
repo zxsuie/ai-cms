@@ -18,6 +18,7 @@ export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
 ) {
+  let userRole = '';
   try {
     const parsed = loginSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!parsed.success) {
@@ -45,6 +46,8 @@ export async function authenticate(
         return 'User profile not found. Please contact support.';
     }
 
+    userRole = profile.role;
+
     const session = await getIronSession<SessionData>(cookies(), sessionOptions);
     session.isLoggedIn = true;
     session.user = profile;
@@ -58,7 +61,8 @@ export async function authenticate(
     return 'An unexpected error occurred. Please try again.';
   }
 
-  redirect('/dashboard');
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+  redirect(isAdmin ? '/dashboard' : '/appointments');
 }
 
 

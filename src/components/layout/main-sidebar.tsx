@@ -24,7 +24,7 @@ import { Button } from '../ui/button';
 
 
 const allMenuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin'] },
   { href: '/inventory', label: 'Inventory', icon: Boxes, roles: ['admin', 'super_admin'] },
   { href: '/appointments', label: 'Appointments', icon: CalendarDays, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
   { href: '/reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'super_admin'] },
@@ -39,7 +39,7 @@ export function MainSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading, isSuperAdmin } = useUser();
+  const { user, loading, isSuperAdmin, isAdmin } = useUser();
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });

@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   
   // The an application's public URL is required to create a new Supabase client.
   const appUrl = 'https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev';
+  let defaultRedirect = '/dashboard';
 
   if (code) {
     const cookieStore = cookies();
@@ -45,6 +46,9 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${appUrl}/login?error=profile_not_found`);
       }
 
+      const isAdmin = profile.role === 'admin' || profile.role === 'super_admin';
+      defaultRedirect = isAdmin ? '/dashboard' : '/appointments';
+
       const session = await getIronSession<SessionData>(cookies(), sessionOptions);
       session.isLoggedIn = true;
       session.user = {
@@ -61,7 +65,7 @@ export async function GET(request: Request) {
       };
       await session.save();
 
-      return NextResponse.redirect(`${appUrl}${next}`);
+      return NextResponse.redirect(`${appUrl}${next === '/dashboard' ? defaultRedirect : next}`);
     } else {
         console.error("OAuth callback error:", error);
     }

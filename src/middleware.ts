@@ -8,14 +8,23 @@ import { cookies } from 'next/headers';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
-  const { isLoggedIn } = session;
+  const { isLoggedIn, user } = session;
 
   const publicPaths = ['/login', '/signup', '/agreement'];
   const isPublicPath = publicPaths.includes(pathname);
+  
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const defaultPage = isAdmin ? '/dashboard' : '/appointments';
+  const isDashboard = pathname.startsWith('/dashboard');
 
-  // If trying to access a public path while logged in, redirect to dashboard
+  // If a non-admin tries to access the dashboard, redirect them
+  if (isLoggedIn && !isAdmin && isDashboard) {
+      return NextResponse.redirect(new URL('/appointments', request.url));
+  }
+
+  // If trying to access a public path while logged in, redirect to default page
   if (isLoggedIn && isPublicPath) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL(defaultPage, request.url));
   }
 
   // If trying to access a protected path while not logged in, redirect to login
@@ -23,10 +32,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Redirect root to agreement page if not logged in
+  // Redirect root to appropriate page
   if (pathname === '/') {
     if (isLoggedIn) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        return NextResponse.redirect(new URL(defaultPage, request.url));
     }
     return NextResponse.redirect(new URL('/agreement', request.url));
   }
