@@ -3,7 +3,7 @@
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; 
-import { format, parseISO } from 'date-fns';
+import { format, parse, parseISO } from 'date-fns';
 import type { GenerateAiReportOutput } from '@/ai/flows/ai-report-generator';
 import type { ActivityLog, StudentVisit, Appointment } from './types';
 
@@ -154,7 +154,7 @@ export async function generatePdfReport(data: PdfReportData) {
     doc.text('4. Scheduled Appointments', margin, lastY);
     
     const appointmentTableData = appointments.map(a => [
-        format(parseISO(a.appointmentDate), 'PP'),
+        format(parse(a.appointmentDate, 'yyyy-MM-dd', new Date()), 'PP'),
         format(new Date(`1970-01-01T${a.appointmentTime}`), 'p'),
         a.studentName,
         `${a.studentYear} - ${a.studentSection}`,
