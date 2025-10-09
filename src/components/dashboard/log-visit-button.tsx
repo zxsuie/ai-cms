@@ -10,11 +10,9 @@ import { useUser } from '@/hooks/use-user';
 
 export function LogVisitButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
+  const { isAdmin } = useUser();
 
-  const canLogVisit = user?.role === 'admin' || user?.role === 'super_admin';
-
-  if (!canLogVisit) {
+  if (!isAdmin) {
     return null;
   }
 

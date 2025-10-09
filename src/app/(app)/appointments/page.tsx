@@ -95,7 +95,7 @@ function UserAppointmentView() {
 
 
 export default function AppointmentsPage() {
-  const { user, loading } = useUser();
+  const { isAdmin, loading } = useUser();
 
   if (loading) {
     return (
@@ -109,8 +109,6 @@ export default function AppointmentsPage() {
         </div>
     )
   }
-
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
     <div className="space-y-6">

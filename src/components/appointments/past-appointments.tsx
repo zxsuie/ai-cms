@@ -16,8 +16,7 @@ import {
 } from '@/components/ui/table';
 
 export function PastAppointments() {
-  const { user, loading: userLoading } = useUser();
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const { user, isAdmin, loading: userLoading } = useUser();
   
   const { appointments, loading: appointmentsLoading } = useAppointments({
     filter: isAdmin ? 'all' : 'user',

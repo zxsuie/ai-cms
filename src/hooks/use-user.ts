@@ -30,6 +30,11 @@ export function useUser() {
         }
         fetchSession();
     }, [pathname, router]); // Re-fetch on path change
+    
+    const user = session?.user;
+    const isLoggedIn = session?.isLoggedIn;
+    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+    const isSuperAdmin = user?.role === 'super_admin';
 
-    return { user: session?.user, isLoggedIn: session?.isLoggedIn, loading };
+    return { user, isLoggedIn, loading, isAdmin, isSuperAdmin };
 }

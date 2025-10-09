@@ -39,7 +39,7 @@ export function MainSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading } = useUser();
+  const { user, loading, isSuperAdmin } = useUser();
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -103,7 +103,7 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
-         {user?.role === 'super_admin' && (
+         {isSuperAdmin && (
              <SidebarGroup className="mt-4 pt-4 border-t border-sidebar-border">
                 <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
                  {superAdminItems.map((item) => (
