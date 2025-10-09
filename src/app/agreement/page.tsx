@@ -29,7 +29,7 @@ export default function AgreementPage() {
         <CardContent className="space-y-6">
           <ScrollArea className="h-80 w-full rounded-md border p-4">
             <div className="space-y-4 text-sm text-muted-foreground">
-              <p className="font-bold text-foreground">SEPTEMBER 9, 2025</p>
+              <p className="font-bold text-foreground">September 10, 2025</p>
 
               <h3 className="font-bold text-foreground pt-4">Terms and Conditions</h3>
               <p>
