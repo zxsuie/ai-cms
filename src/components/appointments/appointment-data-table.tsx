@@ -36,7 +36,7 @@ const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
       header: "Name",
     },
      {
-      accessorFn: (row) => row.original.profile?.role,
+      accessorFn: (row) => row.profile?.role,
       id: 'role',
       header: "Role",
        cell: ({ row }) => {
