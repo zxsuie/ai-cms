@@ -47,13 +47,7 @@ export async function authenticate(
 
     const session = await getIronSession<SessionData>(cookies(), sessionOptions);
     session.isLoggedIn = true;
-    session.user = {
-      id: authUser.id,
-      email: authUser.email!,
-      role: profile.role,
-      fullName: profile.fullName,
-      avatarUrl: profile.avatarUrl,
-    };
+    session.user = profile;
     await session.save();
     
   } catch (error: any) {

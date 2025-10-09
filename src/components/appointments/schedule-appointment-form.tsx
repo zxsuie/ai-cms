@@ -69,6 +69,7 @@ export function ScheduleAppointmentForm() {
   const { appointments } = useAppointments({ filter: 'all' }); // Fetch all for conflict checking
   const [isClient, setIsClient] = useState(false);
   const { user, loading } = useUser();
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   useEffect(() => {
     setIsClient(true);
@@ -88,20 +89,21 @@ export function ScheduleAppointmentForm() {
 
   // Populate form with user data if available
   useEffect(() => {
-    if (user && !loading) {
-        const isAdmin = user.role === 'admin' || user.role === 'super_admin';
-        if (!isAdmin) {
-            form.setValue('studentName', user.fullName || '');
-            // You might want to populate these from the user's profile as well
-            if (user.course) form.setValue('studentYear', user.course);
-            if (user.studentSection) form.setValue('studentSection', user.studentSection);
-        }
+    if (user && !loading && !isAdmin) {
+      form.setValue('studentName', user.fullName || '');
+      
+      if (user.role === 'student') {
+        form.setValue('studentYear', user.course || 'N/A');
+        form.setValue('studentSection', user.studentSection || 'N/A');
+      } else if (user.role === 'employee' || user.role === 'staff') {
+        form.setValue('studentYear', user.department || 'N/A');
+        form.setValue('studentSection', user.jobTitle || 'N/A');
+      }
     }
-  }, [user, loading, form]);
+  }, [user, loading, form, isAdmin]);
 
 
   const selectedDate = form.watch('date');
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   const isTimeSlotBooked = (time: string, date: Date, existingAppointments: Appointment[]): boolean => {
     if (!date) return false;
@@ -125,19 +127,12 @@ export function ScheduleAppointmentForm() {
           title: 'Success',
           description: result.message,
         });
-        // Don't reset user-populated fields for non-admins
+        // Reset form based on role
         if(isAdmin) {
-          form.reset({
-            studentName: '',
-            studentYear: '',
-            studentSection: '',
-            reason: '',
-            date: undefined,
-            time: '',
-          });
+          form.reset();
         } else {
             form.reset({
-                ...form.getValues(),
+                ...form.getValues(), // Keep pre-filled values
                 reason: '',
                 date: undefined,
                 time: ''
@@ -160,7 +155,8 @@ export function ScheduleAppointmentForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {isAdmin && (
+        {isAdmin ? (
+          <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
@@ -180,43 +176,38 @@ export function ScheduleAppointmentForm() {
                     name="studentYear"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Year</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Select year level" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {yearLevels.map(year => (
-                            <SelectItem key={year} value={year}>{year}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
+                        <FormLabel>Year / Department</FormLabel>
+                         <Input placeholder="e.g. BSIT or HR Department" {...field} />
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-                </div>
-        )}
-        
-        {isAdmin && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-                control={form.control}
-                name="studentSection"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Section</FormLabel>
-                    <FormControl>
-                    <Input placeholder="e.g. BSCS-2A" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                  control={form.control}
+                  name="studentSection"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Section / Job Title</FormLabel>
+                      <FormControl>
+                      <Input placeholder="e.g. BSCS-2A or Professor" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
+                  )}
+              />
+            </div>
+          </>
+        ) : (
+            // For non-admin users, these fields are hidden and pre-filled
+            <>
+                <input type="hidden" {...form.register('studentName')} />
+                <input type="hidden" {...form.register('studentYear')} />
+                <input type="hidden" {...form.register('studentSection')} />
+            </>
         )}
+
         <FormField
           control={form.control}
           name="reason"

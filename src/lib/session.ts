@@ -4,13 +4,7 @@ import type { Profile } from './types';
 
 export type SessionData = {
   isLoggedIn: boolean;
-  user: {
-      id: string;
-      email: string;
-      role: Profile['role'];
-      fullName?: string;
-      avatarUrl?: string;
-  } | null;
+  user: Profile | null;
 };
 
 export const defaultSession: SessionData = {

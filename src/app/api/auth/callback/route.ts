@@ -53,6 +53,11 @@ export async function GET(request: Request) {
         role: profile.role,
         fullName: profile.fullName,
         avatarUrl: profile.avatarUrl,
+        // Add all profile fields to the session
+        course: profile.course,
+        studentSection: profile.studentSection,
+        department: profile.department,
+        jobTitle: profile.jobTitle,
       };
       await session.save();
 
