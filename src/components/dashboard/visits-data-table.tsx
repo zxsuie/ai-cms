@@ -30,12 +30,8 @@ import { format } from "date-fns"
 import { ReleaseFormButton } from "./release-form-button"
 import { Skeleton } from "../ui/skeleton"
 
-export function VisitsDataTable() {
-  const { visits, loading } = useVisits();
-  const [sorting, setSorting] = React.useState<SortingState>([ { id: 'timestamp', desc: true } ])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-
-  const columns: ColumnDef<StudentVisit>[] = [
+// Moved columns definition outside the component
+const columns: ColumnDef<StudentVisit>[] = [
     {
       accessorKey: "studentName",
       header: "Student",
@@ -63,7 +59,12 @@ export function VisitsDataTable() {
       id: "actions",
       cell: ({ row }) => <ReleaseFormButton visit={row.original} />,
     },
-  ];
+];
+
+export function VisitsDataTable() {
+  const { visits, loading } = useVisits();
+  const [sorting, setSorting] = React.useState<SortingState>([ { id: 'timestamp', desc: true } ])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
     data: visits,
