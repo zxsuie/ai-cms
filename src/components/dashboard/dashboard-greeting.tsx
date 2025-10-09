@@ -29,7 +29,7 @@ export function DashboardGreeting() {
     )
   }
 
-  const firstName = user?.fullName?.split(' ')[0] || user?.email;
+  const firstName = user?.fullName?.split(' ')[0] || user?.email || '';
 
   return (
     <div>
