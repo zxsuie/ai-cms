@@ -19,10 +19,18 @@ export function ReportGenerator() {
   const [report, setReport] = useState<GenerateAiReportOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeReportType, setActiveReportType] = useState<ReportType | null>(null);
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const { toast } = useToast();
 
   const handleGenerateReport = (reportType: ReportType) => {
+    if (userLoading) {
+      toast({
+        title: "Please wait",
+        description: "User session is still loading.",
+      });
+      return;
+    }
+
     if (!user) {
         toast({
             variant: 'destructive',
@@ -53,19 +61,19 @@ export function ReportGenerator() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Button 
                 onClick={() => handleGenerateReport('weekly')} 
-                disabled={isPending}
+                disabled={isPending || userLoading}
                 className="flex-1"
             >
-              {isPending && activeReportType === 'weekly' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {(isPending && activeReportType === 'weekly') || userLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Generate Weekly Report
             </Button>
             <Button 
                 onClick={() => handleGenerateReport('monthly')} 
-                disabled={isPending}
+                disabled={isPending || userLoading}
                 className="flex-1"
                 variant="secondary"
             >
-              {isPending && activeReportType === 'monthly' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {(isPending && activeReportType === 'monthly') || userLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Generate Monthly Report
             </Button>
           </div>
