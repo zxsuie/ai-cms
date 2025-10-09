@@ -2,15 +2,10 @@
 'use client';
 
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; 
-import { format, parse, parseISO } from 'date-fns';
+import autoTable from 'jspdf-autotable'; 
+import { format, parse } from 'date-fns';
 import type { GenerateAiReportOutput } from '@/ai/flows/ai-report-generator';
 import type { ActivityLog, StudentVisit, Appointment } from './types';
-
-// Extend jsPDF with the autoTable method
-interface jsPDFWithAutoTable extends jsPDF {
-  autoTable: (options: any) => jsPDFWithAutoTable;
-}
 
 interface PdfReportData {
     aiReport: GenerateAiReportOutput;
@@ -33,13 +28,14 @@ function addHeader(doc: jsPDF, title: string) {
   doc.text(title, 20, 28);
 }
 
-function addFooter(doc: jsPDFWithAutoTable) {
+function addFooter(doc: jsPDF) {
     const pageCount = doc.internal.getNumberOfPages();
     doc.setFontSize(8);
     doc.setTextColor(150);
 
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
+        autoTable(doc, { body: [] }); // This is a hack to get the final Y
         doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 40, doc.internal.pageSize.height - 10);
         doc.text(`Report Generated: ${format(new Date(), 'PPpp')}`, 20, doc.internal.pageSize.height - 10);
     }
@@ -51,7 +47,7 @@ function formatActionType(type: string) {
 
 export async function generatePdfReport(data: PdfReportData) {
     const { aiReport, reportType, visits, appointments, logs } = data;
-    const doc = new jsPDF() as jsPDFWithAutoTable;
+    const doc = new jsPDF();
 
     const today = new Date();
     const margin = 20;
@@ -77,7 +73,6 @@ export async function generatePdfReport(data: PdfReportData) {
     doc.setFont('helvetica', 'normal');
     const summaryLines = doc.splitTextToSize(aiReport.summaryText.replace(/\*\*/g, ''), pageWidth - margin * 2);
     doc.text(summaryLines, margin, currentY);
-    let lastY = currentY + summaryLines.length * 5 + 10;
 
 
     // Detailed Analysis
@@ -119,7 +114,6 @@ export async function generatePdfReport(data: PdfReportData) {
     doc.setFont('helvetica', 'normal');
     const medicineLines = doc.splitTextToSize(aiReport.medicinesDispensed.replace(/\*\*/g, ''), pageWidth - margin * 2);
     doc.text(medicineLines, margin, currentY);
-    lastY = currentY + medicineLines.length * 5 + 10;
 
     // Student Visits Table
     doc.addPage();
@@ -130,14 +124,14 @@ export async function generatePdfReport(data: PdfReportData) {
     doc.text('3. Student Visits Log', margin, currentY);
 
     const visitTableData = visits.map(v => [
-        format(parseISO(v.timestamp), 'PP'),
+        format(parse(v.timestamp, "yyyy-MM-dd'T'HH:mm:ss.SSSSSSxxx", new Date()), 'PP'),
         v.studentName,
         `${v.studentYear} - ${v.studentSection}`,
         v.reason,
         v.symptoms,
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
         head: [['Date', 'Student Name', 'Year & Section', 'Reason', 'Symptoms']],
         body: visitTableData,
         startY: currentY + 10,
@@ -145,7 +139,7 @@ export async function generatePdfReport(data: PdfReportData) {
         styles: { fontSize: 8, cellPadding: 2 },
         columnStyles: { 3: { cellWidth: 40 }, 4: { cellWidth: 40 } },
     });
-    lastY = doc.autoTable.previous.finalY + 15;
+    let lastY = (doc as any).lastAutoTable.finalY + 15;
 
 
     // Appointments Table
@@ -155,13 +149,13 @@ export async function generatePdfReport(data: PdfReportData) {
     
     const appointmentTableData = appointments.map(a => [
         format(parse(a.appointmentDate, 'yyyy-MM-dd', new Date()), 'PP'),
-        format(new Date(`1970-01-01T${a.appointmentTime}`), 'p'),
+        format(parse(a.appointmentTime, 'HH:mm', new Date()), 'p'),
         a.studentName,
         `${a.studentYear} - ${a.studentSection}`,
         a.reason,
     ]);
 
-     doc.autoTable({
+     autoTable(doc, {
         head: [['Date', 'Time', 'Student Name', 'Year & Section', 'Reason']],
         body: appointmentTableData,
         startY: lastY + 10,
@@ -169,7 +163,7 @@ export async function generatePdfReport(data: PdfReportData) {
         styles: { fontSize: 8, cellPadding: 2 },
         columnStyles: { 4: { cellWidth: 50 } },
     });
-    lastY = doc.autoTable.previous.finalY + 15;
+    lastY = (doc as any).lastAutoTable.finalY + 15;
 
 
     // Activity Log Data
@@ -182,13 +176,13 @@ export async function generatePdfReport(data: PdfReportData) {
     doc.text('5. System Activity Log', margin, currentY);
     
     const logTableData = logs.map(log => [
-        format(parseISO(log.timestamp), 'PP p'),
+        format(parse(log.timestamp, "yyyy-MM-dd'T'HH:mm:ss.SSSSSSxxx", new Date()), 'PP p'),
         log.userName,
         formatActionType(log.actionType),
         Object.entries(log.details).map(([key, value]) => `${key}: ${value}`).join('\n')
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
         head: [['Timestamp', 'User', 'Action', 'Details']],
         body: logTableData,
         startY: currentY + 10,
