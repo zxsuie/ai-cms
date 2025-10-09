@@ -42,9 +42,11 @@ export function useVisitsLast7Days() {
           dailyCounts[visitDay]++;
         }
         
-        const visitSymptoms = visit.symptoms.split(',').map(s => s.trim().toLowerCase());
+        // Standardize symptoms to be case-insensitive and handle multiple entries
+        const visitSymptoms = visit.symptoms.split(/, | /).map(s => s.trim().toLowerCase());
         visitSymptoms.forEach(symptom => {
           if (symptom) {
+             // Capitalize first letter for consistent display
              const capitalizedSymptom = symptom.charAt(0).toUpperCase() + symptom.slice(1);
              symptoms[capitalizedSymptom] = (symptoms[capitalizedSymptom] || 0) + 1;
           }

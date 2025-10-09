@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, PieLabelRenderProps } from 'recharts';
+import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, Legend } from 'recharts';
 import { useVisitsLast7Days } from '@/hooks/use-visits-last-7-days';
 import { useTheme } from 'next-themes';
 import { themes } from '@/themes';
@@ -10,25 +10,31 @@ import { themes } from '@/themes';
 const COLORS = ['#3F51B5', '#FF9800', '#4CAF50', '#F44336', '#9C27B0'];
 
 const RADIAN = Math.PI / 180;
-const MAX_LABEL_LENGTH = 20;
 
+// A custom label with lines pointing from the chart to the label
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const radius = outerRadius + 15; // Position label outside the pie
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 5) * cos;
+  const sy = cy + (outerRadius + 5) * sin;
+  const mx = cx + (outerRadius + 10) * cos;
+  const my = cy + (outerRadius + 10) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 12;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
 
-  let displayName = name;
-  if (name.length > MAX_LABEL_LENGTH) {
-    displayName = `${name.substring(0, MAX_LABEL_LENGTH)}...`;
-  }
-  
-  const labelText = `${displayName}: ${(percent * 100).toFixed(0)}%`;
-  
   return (
-    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12}>
-      {labelText}
-    </text>
+    <g>
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={props.fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={props.fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 6} y={ey} textAnchor={textAnchor} fill={props.fill} fontSize={12}>
+        {`${name} (${(percent * 100).toFixed(0)}%)`}
+      </text>
+    </g>
   );
 };
 
@@ -58,13 +64,14 @@ export function SymptomDistributionChart() {
   return (
     <div className="h-80 w-full">
       <ResponsiveContainer>
-        <PieChart>
+        <PieChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
           <Tooltip
-            cursor={false}
+            cursor={{fill: 'transparent'}}
             contentStyle={{
-              backgroundColor: theme.cssVars.light.background,
-              borderColor: theme.cssVars.light.border,
+              backgroundColor: `hsl(${theme.cssVars.light.background})`,
+              borderColor: `hsl(${theme.cssVars.light.border})`,
             }}
+            formatter={(value, name) => [`${value} visits`, name]}
           />
           <Pie
             data={data}
@@ -72,7 +79,7 @@ export function SymptomDistributionChart() {
             cy="50%"
             labelLine={false}
             label={renderCustomizedLabel}
-            outerRadius={100}
+            outerRadius={80}
             fill="#8884d8"
             dataKey="value"
             nameKey="name"
