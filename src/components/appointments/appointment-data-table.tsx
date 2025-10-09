@@ -36,7 +36,7 @@ const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
       header: "Name",
     },
      {
-      accessorFn: (row) => row.profile?.role,
+      accessorFn: (row) => row.original.profile?.role,
       id: 'role',
       header: "Role",
        cell: ({ row }) => {
@@ -44,7 +44,10 @@ const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
         return role ? <span className="capitalize">{role.replace('_', ' ')}</span> : 'N/A';
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
+        if (value === null || value === undefined) {
+          return true;
+        }
+        return (value as any).includes(row.getValue(id))
       },
     },
     {
