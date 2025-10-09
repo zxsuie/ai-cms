@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { VisitLogForm } from './visit-log-form';
 import { PlusCircle } from 'lucide-react';
 import { useUser } from '@/hooks/use-user';
+import { ScrollArea } from '../ui/scroll-area';
 
 export function LogVisitButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,14 +24,16 @@ export function LogVisitButton() {
         Log New Visit
       </Button>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent className="w-full sm:max-w-lg">
+        <SheetContent className="w-full sm:max-w-lg flex flex-col">
           <SheetHeader>
             <SheetTitle>New Student Visit</SheetTitle>
             <SheetDescription>Fill in the details for a new student visit. Click save when you're done.</SheetDescription>
           </SheetHeader>
-          <div className="py-4">
-            <VisitLogForm onSuccess={() => setIsOpen(false)} />
-          </div>
+          <ScrollArea className="flex-grow">
+            <div className="py-4 pr-6">
+                <VisitLogForm onSuccess={() => setIsOpen(false)} />
+            </div>
+          </ScrollArea>
         </SheetContent>
       </Sheet>
     </>
