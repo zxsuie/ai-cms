@@ -8,6 +8,7 @@ import { Bell, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '../ui/skeleton';
 
 const NOTIFICATION_WINDOW_MINUTES = 15; // Show appointments within the next 15 minutes
 
@@ -23,7 +24,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!isClient) {
-      return; // Don't run the interval on the server or during the initial client render
+      return; // Don't run the interval on the server
     }
 
     const checkAppointments = () => {
@@ -48,15 +49,12 @@ export function NotificationBell() {
     return () => clearInterval(intervalId);
   }, [appointments, isClient]);
 
-  // Render nothing on the server to prevent mismatch
+  // On the server or during initial client render, show a placeholder.
   if (!isClient) {
-    return (
-        <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-        </Button>
-    );
+    return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
+  // Once on the client, render the full component.
   return (
     <Popover>
       <PopoverTrigger asChild>
