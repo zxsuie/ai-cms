@@ -51,13 +51,7 @@ function formatActionType(type: string) {
 
 export async function generatePdfReport(data: PdfReportData) {
     const { aiReport, reportType, visits, appointments, logs } = data;
-    const doc = new jsPDF({
-        encryption: {
-            userPassword: 'admin123',
-            ownerPassword: 'admin', // Owner password can be different
-            userPermissions: ["print", "modify", "copy", "annot-forms"]
-        }
-    }) as jsPDFWithAutoTable;
+    const doc = new jsPDF() as jsPDFWithAutoTable;
 
     const today = new Date();
     const margin = 20;
