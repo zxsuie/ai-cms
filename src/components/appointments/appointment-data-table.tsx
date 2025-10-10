@@ -30,12 +30,14 @@ import { format, parse } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 import { supabase } from "@/lib/supabase"
 
-const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
+type AppointmentWithProfile = Appointment & { profile?: Profile | null };
+
+const columns: ColumnDef<AppointmentWithProfile>[] = [
     {
       accessorKey: "studentName",
       header: "Name",
     },
-     {
+    {
       accessorFn: (row) => row.profile?.role,
       id: 'role',
       header: "Role",
@@ -47,7 +49,8 @@ const columns: ColumnDef<Appointment & { profile?: Profile | null }>[] = [
         if (value === null || value === undefined) {
           return true;
         }
-        return (value as any).includes(row.getValue(id))
+        const rowValue = row.getValue(id);
+        return rowValue ? (value as any).includes(rowValue) : false;
       },
     },
     {
@@ -70,21 +73,23 @@ export function AppointmentDataTable() {
   const { appointments, loading } = useAppointments({ filter: 'all' });
   const [sorting, setSorting] = React.useState<SortingState>([ { id: 'appointmentDate', desc: true } ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [profiles, setProfiles] = React.useState<Profile[]>([]);
+  const [profiles, setProfiles] = React.useState<Map<string, Profile>>(new Map());
 
-  // Fetch profiles to link roles to appointments
   React.useEffect(() => {
     async function fetchProfiles() {
         const { data, error } = await supabase.from('profiles').select('*');
-        if (data) setProfiles(data as Profile[]);
+        if (data) {
+          const profileMap = new Map(data.map(p => [p.id, p as Profile]));
+          setProfiles(profileMap);
+        }
     }
     fetchProfiles();
   }, []);
   
   const dataWithProfiles = React.useMemo(() => {
-    if (!appointments.length || !profiles.length) return [];
+    if (!appointments.length || profiles.size === 0) return appointments as AppointmentWithProfile[];
     return appointments.map(appt => {
-        const profile = profiles.find(p => p.fullName === appt.studentName);
+        const profile = appt.userId ? profiles.get(appt.userId) : undefined;
         return { ...appt, profile };
     });
   }, [appointments, profiles]);

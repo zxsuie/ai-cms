@@ -10,6 +10,7 @@ export const logVisitSchema = z.object({
 });
 
 export const scheduleAppointmentSchema = z.object({
+  userId: z.string().optional(), // Can be optional if an admin is creating it for a non-registered person
   studentName: z.string().min(1, 'Student name is required'),
   studentYear: z.string().min(1, 'Year/Course or Department is required'),
   studentSection: z.string().min(1, 'Section or Job Title is required'),
@@ -93,6 +94,7 @@ export type RefillRequest = {
 
 export type Appointment = {
   id: string; // UUID
+  userId?: string; // UUID of the user who booked
   studentName: string;
   studentYear: string;
   studentSection: string;

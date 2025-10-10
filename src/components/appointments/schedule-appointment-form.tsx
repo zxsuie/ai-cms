@@ -78,6 +78,7 @@ export function ScheduleAppointmentForm() {
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(scheduleAppointmentSchema),
     defaultValues: {
+      userId: '',
       studentName: '',
       studentYear: '',
       studentSection: '',
@@ -90,6 +91,7 @@ export function ScheduleAppointmentForm() {
   // Populate form with user data if available
   useEffect(() => {
     if (user && !loading && !isAdmin) {
+      form.setValue('userId', user.id || '');
       form.setValue('studentName', user.fullName || '');
       
       if (user.role === 'student') {
@@ -157,6 +159,19 @@ export function ScheduleAppointmentForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {isAdmin ? (
           <>
+             <FormField
+              control={form.control}
+              name="userId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User ID (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter user ID if booking for a specific registered user" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
@@ -200,6 +215,7 @@ export function ScheduleAppointmentForm() {
         ) : (
             // For non-admin users, these fields are hidden and pre-filled
             <>
+                <input type="hidden" {...form.register('userId')} />
                 <input type="hidden" {...form.register('studentName')} />
                 <input type="hidden" {...form.register('studentYear')} />
                 <input type="hidden" {...form.register('studentSection')} />
