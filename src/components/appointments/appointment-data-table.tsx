@@ -46,7 +46,7 @@ const columns: ColumnDef<AppointmentWithProfile>[] = [
         return role ? <span className="capitalize">{role.replace('_', ' ')}</span> : 'N/A';
       },
       filterFn: (row, id, value) => {
-        if (value === null || value === undefined) {
+        if (!value) {
           return true;
         }
         const rowValue = row.getValue(id);

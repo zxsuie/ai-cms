@@ -203,7 +203,12 @@ export const db = {
   },
 
   addAppointment: async (apptData: AppointmentInsert): Promise<Appointment> => {
-    const {data, error} = await supabase.from('appointments').insert(toSnakeCase(apptData)).select().single();
+    const snakeCaseData = toSnakeCase(apptData);
+    // Ensure userId is correctly formatted if it exists
+    if (snakeCaseData.user_id === '') {
+        delete snakeCaseData.user_id;
+    }
+    const {data, error} = await supabase.from('appointments').insert(snakeCaseData).select().single();
     if (error) throw error;
     return toCamelCase(data) as Appointment;
   },
