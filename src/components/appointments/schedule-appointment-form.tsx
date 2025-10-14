@@ -90,7 +90,7 @@ export function ScheduleAppointmentForm() {
 
   // Populate form with user data if available
   useEffect(() => {
-    if (user && !loading && !isAdmin) {
+    if (user && !loading) {
       form.setValue('userId', user.id || '');
       form.setValue('studentName', user.fullName || '');
       
@@ -102,7 +102,7 @@ export function ScheduleAppointmentForm() {
         form.setValue('studentSection', user.jobTitle || 'N/A');
       }
     }
-  }, [user, loading, form, isAdmin]);
+  }, [user, loading, form]);
 
 
   const selectedDate = form.watch('date');
@@ -150,28 +150,28 @@ export function ScheduleAppointmentForm() {
     });
   }
   
-  if (loading) {
+  if (loading && !isAdmin) { // only show skeleton for non-admins to avoid layout shift
     return <Skeleton className="h-96 w-full" />
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="userId"
+          render={({ field }) => (
+            <FormItem className={cn(isAdmin ? 'block' : 'hidden')}>
+              <FormLabel>User ID (for linking to existing profile)</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter user ID to link appointment to a profile" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {isAdmin ? (
           <>
-             <FormField
-              control={form.control}
-              name="userId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter user ID if booking for a specific registered user" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
@@ -215,7 +215,6 @@ export function ScheduleAppointmentForm() {
         ) : (
             // For non-admin users, these fields are hidden and pre-filled
             <>
-                <input type="hidden" {...form.register('userId')} />
                 <input type="hidden" {...form.register('studentName')} />
                 <input type="hidden" {...form.register('studentYear')} />
                 <input type="hidden" {...form.register('studentSection')} />

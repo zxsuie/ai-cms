@@ -10,7 +10,7 @@ export const logVisitSchema = z.object({
 });
 
 export const scheduleAppointmentSchema = z.object({
-  userId: z.string().optional(), // Can be optional if an admin is creating it for a non-registered person
+  userId: z.string().uuid().optional().or(z.literal('')), // Can be optional if an admin is creating it for a non-registered person
   studentName: z.string().min(1, 'Student name is required'),
   studentYear: z.string().min(1, 'Year/Course or Department is required'),
   studentSection: z.string().min(1, 'Section or Job Title is required'),
@@ -38,18 +38,24 @@ const studentSchema = baseUserSchema.extend({
   role: z.literal('student'),
   course: z.string().min(1, 'Course is required'),
   studentSection: z.string().min(1, 'Section is required'),
+  department: z.string().optional(),
+  jobTitle: z.string().optional(),
 });
 
 const employeeSchema = baseUserSchema.extend({
   role: z.literal('employee'),
   department: z.string().min(1, 'Department is required'),
   jobTitle: z.string().min(1, 'Job title is required'),
+  course: z.string().optional(),
+  studentSection: z.string().optional(),
 });
 
 const staffSchema = baseUserSchema.extend({
   role: z.literal('staff'),
   department: z.string().min(1, 'Department is required'),
   jobTitle: z.string().min(1, 'Job title is required'),
+  course: z.string().optional(),
+  studentSection: z.string().optional(),
 });
 
 // This schema will be used for the new dynamic signup form
@@ -114,8 +120,8 @@ export type ActivityLog = {
 export type Profile = {
     id: string; // UUID
     email: string;
-    fullName?: string;
-    avatarUrl?: string;
+    fullName: string;
+    avatarUrl: string;
     role: 'admin' | 'super_admin' | 'student' | 'employee' | 'staff';
     course?: string;
     studentSection?: string;

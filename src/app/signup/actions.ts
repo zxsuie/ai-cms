@@ -18,7 +18,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
         return { message: errorMessages, success: false };
     }
 
-    const { email, password, fullName, ...profileData } = parsed.data;
+    const { email, password, confirmPassword, ...profileData } = parsed.data;
 
     // The redirect URL for the email verification link
     const emailRedirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
@@ -28,8 +28,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
         password,
         options: {
             data: {
-                full_name: fullName,
-                ...profileData,
+                ...profileData, // Pass all profile data including role, course, etc.
             },
             emailRedirectTo,
         },
