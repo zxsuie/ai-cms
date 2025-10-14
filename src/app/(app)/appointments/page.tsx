@@ -6,9 +6,76 @@ import { AppointmentDataTable } from "@/components/appointments/appointment-data
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ShieldAlert } from "lucide-react";
+import { ScheduleAppointmentForm } from "@/components/appointments/schedule-appointment-form";
+import { UpcomingAppointments } from "@/components/appointments/upcoming-appointments";
+import { PastAppointments } from "@/components/appointments/past-appointments";
 
+function AdminAppointmentView() {
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Management</h1>
+                <p className="text-muted-foreground">
+                View, filter, and manage all scheduled appointments.
+                </p>
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Appointments</CardTitle>
+                    <CardDescription>A complete log of all upcoming and past appointments across the system.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                        <AppointmentDataTable />
+                    </Suspense>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+function UserAppointmentView() {
+    return (
+        <div className="space-y-6">
+             <div>
+                <h1 className="text-3xl font-headline font-bold tracking-tight">Your Appointments</h1>
+                <p className="text-muted-foreground">Schedule and manage your appointments with the clinic.</p>
+            </div>
+            <Card>
+                <CardHeader>
+                <CardTitle>Book an Appointment</CardTitle>
+                <CardDescription>Select a date and time to schedule your visit to the clinic.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <ScheduleAppointmentForm />
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Your Upcoming Appointments</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                            <UpcomingAppointments />
+                        </Suspense>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Your Past Appointments</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                            <PastAppointments />
+                        </Suspense>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
 
 export default function AppointmentsPage() {
   const { isAdmin, loading } = useUser();
@@ -23,47 +90,10 @@ export default function AppointmentsPage() {
     )
   }
 
-  if (!isAdmin) {
-    return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-headline font-bold tracking-tight">Access Denied</h1>
-                <p className="text-muted-foreground">
-                    This page is for administrators only.
-                </p>
-            </div>
-            <Alert variant="destructive">
-                <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Permission Required</AlertTitle>
-                <AlertDescription>
-                    You do not have the necessary permissions to view this page. Please contact an administrator if you believe this is an error.
-                </AlertDescription>
-            </Alert>
-        </div>
-    )
+  if (isAdmin) {
+    return <AdminAppointmentView />;
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Management</h1>
-        <p className="text-muted-foreground">
-          View, filter, and manage all scheduled appointments.
-        </p>
-      </div>
-      
-      <Card>
-        <CardHeader>
-            <CardTitle>All Appointments</CardTitle>
-            <CardDescription>A complete log of all upcoming and past appointments across the system.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-                <AppointmentDataTable />
-            </Suspense>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <UserAppointmentView />;
 }
 
