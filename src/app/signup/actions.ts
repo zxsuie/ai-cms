@@ -36,6 +36,10 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
     if (error) {
         console.error('Signup error:', error);
+        // Check for the specific duplicate user error
+        if (error.message.includes('User already registered')) {
+            return { message: 'An account with this email address already exists. Please log in instead.', success: false };
+        }
         return { message: error.message, success: false };
     }
 
