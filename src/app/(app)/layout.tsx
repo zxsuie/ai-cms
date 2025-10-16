@@ -2,10 +2,12 @@
 import { MainSidebar } from '@/components/layout/main-sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { InactivityLogoutProvider } from '@/components/auth/inactivity-logout-provider';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
+      <InactivityLogoutProvider>
         <MainSidebar />
         <SidebarInset>
             <div className="flex flex-col h-full">
@@ -15,6 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </main>
             </div>
         </SidebarInset>
+      </InactivityLogoutProvider>
     </SidebarProvider>
   );
 }
