@@ -26,7 +26,7 @@ export function VerificationForm() {
   const { toast } = useToast();
   const [isResendPending, startResendTransition] = useTransition();
 
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout>();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -57,6 +57,12 @@ export function VerificationForm() {
   }, [state, toast, form]);
 
   useEffect(() => {
+    // Start cooldown on mount
+    startCooldown();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (resendCooldown > 0) {
       intervalRef.current = setInterval(() => {
         setResendCooldown((prev) => prev - 1);
@@ -70,11 +76,6 @@ export function VerificationForm() {
   const startCooldown = () => {
     setResendCooldown(60);
   }
-
-  // Automatically start cooldown on component mount
-  useEffect(() => {
-    startCooldown();
-  }, []);
 
   const handleResend = () => {
     if (resendCooldown > 0 || isResendPending) return;
@@ -113,7 +114,9 @@ export function VerificationForm() {
     
     // Auto-submit when all fields are filled and valid
     if (newPin.trim().length === 6) {
-      formRef.current?.requestSubmit();
+      if (formRef.current) {
+        formRef.current.requestSubmit();
+      }
     }
   };
 
@@ -139,7 +142,9 @@ export function VerificationForm() {
     inputsRef.current[nextIndex]?.focus();
 
      if (pastedData.trim().length === 6) {
-        formRef.current?.requestSubmit();
+       if (formRef.current) {
+          formRef.current.requestSubmit();
+       }
     }
   };
 
@@ -178,14 +183,6 @@ export function VerificationForm() {
             </FormItem>
           )}
         />
-
-        {state?.error && (
-            <Alert variant="destructive">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Verification Failed</AlertTitle>
-                <AlertDescription>{state.error}</AlertDescription>
-            </Alert>
-        )}
 
         <Button type="submit" className="w-full" disabled={isVerifyPending}>
           {isVerifyPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
