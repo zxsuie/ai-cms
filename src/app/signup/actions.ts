@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
 import { signupSchema } from '@/lib/types';
+import { redirect } from 'next/navigation';
 
 type SignupState = {
     message: string | null;
@@ -20,32 +21,47 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
     const { email, password, confirmPassword, ...profileData } = parsed.data;
 
-    // The redirect URL for the email verification link
-    const emailRedirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
-
-    const { error } = await supabase.auth.signUp({
+    // The redirect URL is not needed here as we will redirect manually.
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
             data: {
-                ...profileData, // Pass all profile data including role, course, etc.
+                ...profileData, 
             },
-            emailRedirectTo,
         },
     });
 
     if (error) {
         console.error('Signup error:', error);
-        // Check for the specific duplicate user error
         if (error.message.includes('User already registered')) {
             return { message: 'An account with this email address already exists. Please log in instead.', success: false };
         }
         return { message: error.message, success: false };
     }
 
-    // On successful signup, Supabase sends a confirmation email.
-    return { 
-        message: 'Confirmation link sent to your email. Please verify to log in.', 
-        success: true 
-    };
+    if (!data.user) {
+        return { message: 'Could not create user. Please try again.', success: false };
+    }
+
+    // On successful signup, Supabase sends a confirmation email by default.
+    // We will now also send an OTP for immediate verification.
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+            shouldCreateUser: false,
+        }
+    });
+
+    if (otpError) {
+        console.error('OTP sending error after signup:', otpError);
+        // User is created but OTP failed. Ask them to log in.
+        return { 
+            message: "Account created, but couldn't send verification code. Please try logging in.", 
+            success: true 
+        };
+    }
+    
+    // Redirect to the OTP verification page
+    redirect(`/verify?email=${encodeURIComponent(email)}`);
 }

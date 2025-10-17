@@ -14,11 +14,10 @@ const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
 });
 
-export async function authenticate(
+export async function loginWithPasswordAndOtp(
   prevState: string | undefined,
   formData: FormData,
 ) {
-  let userRole = '';
   try {
     const parsed = loginSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!parsed.success) {
@@ -26,6 +25,9 @@ export async function authenticate(
     }
 
     const { email, password } = parsed.data;
+
+    // First, sign in with password to verify credentials.
+    // This creates a session, which we will immediately sign out of.
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -35,23 +37,22 @@ export async function authenticate(
       return authError?.message || 'Invalid login credentials. Please try again.';
     }
 
-    const { user: authUser } = authData;
-    
-    // Fetch profile to get the role
-    const profile = await db.getProfile(authUser.id);
-    if (!profile) {
-        // This case can happen if the trigger failed.
-        // We will log them out and ask them to contact support.
-        await supabase.auth.signOut();
-        return 'User profile not found. Please contact support.';
+    // Immediately sign out to invalidate the session.
+    // This is crucial because we want to force an OTP verification.
+    await supabase.auth.signOut();
+
+    // Now, send the OTP to the user's email.
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false, // Don't create a new user if they don't exist
+      },
+    });
+
+    if (otpError) {
+      console.error('OTP Sending Error:', otpError);
+      return 'Could not send verification code. Please try again.';
     }
-
-    userRole = profile.role;
-
-    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
-    session.isLoggedIn = true;
-    session.user = profile;
-    await session.save();
     
   } catch (error: any) {
     if (error.message.includes('Invalid login credentials')) {
@@ -61,13 +62,14 @@ export async function authenticate(
     return 'An unexpected error occurred. Please try again.';
   }
 
-  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-  redirect(isAdmin ? '/dashboard' : '/appointments');
+  const email = formData.get('email') as string;
+  // Redirect to the verification page, passing the email as a query parameter.
+  redirect(`/verify?email=${encodeURIComponent(email)}`);
 }
 
 
 export async function signInWithGoogle() {
-    const redirectTo = 'https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback';
+    const redirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
     
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

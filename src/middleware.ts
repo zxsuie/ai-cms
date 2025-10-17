@@ -10,8 +10,8 @@ export async function middleware(request: NextRequest) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
   const { isLoggedIn, user } = session;
 
-  const publicPaths = ['/login', '/signup', '/agreement'];
-  const isPublicPath = publicPaths.includes(pathname);
+  const publicPaths = ['/login', '/signup', '/agreement', '/verify'];
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
   
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const adminDefaultPage = '/dashboard';

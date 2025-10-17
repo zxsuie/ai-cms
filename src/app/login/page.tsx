@@ -3,7 +3,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
-import { authenticate, signInWithGoogle } from '@/app/login/actions';
+import { loginWithPasswordAndOtp, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,12 +17,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 function LoginButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" aria-disabled={pending}>
-      {pending ? 'Logging in...' : 'Login'}
+      {pending ? 'Sending OTP...' : 'Sign In'}
     </Button>
   );
 }
@@ -36,34 +38,20 @@ function GoogleButton() {
     );
 }
 
-function LoginForm({
-    action,
-    initialState
-}: {
-    action: (prevState: string | undefined, formData: FormData) => Promise<string | undefined>,
-    initialState: string | undefined
-}) {
-    const [errorMessage, dispatch] = useActionState(action, initialState);
-    const { toast } = useToast();
+export default function LoginPage() {
+  const [errorMessage, dispatch] = useActionState(loginWithPasswordAndOtp, undefined);
 
-    useEffect(() => {
-        if (errorMessage) {
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: errorMessage,
-        });
-        }
-    }, [errorMessage, toast]);
-
-    return (
-        <form action={dispatch}>
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm space-y-4">
+        <Card>
+          <form action={dispatch}>
             <CardHeader>
               <CardTitle className="text-2xl font-headline">
                 iClinicMate Login
               </CardTitle>
               <CardDescription>
-                Enter your credentials to access the system.
+                Enter your credentials to receive a verification code.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -86,20 +74,18 @@ function LoginForm({
                   required
                 />
               </div>
+               {errorMessage && (
+                  <Alert variant="destructive" className="text-xs">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Login Failed</AlertTitle>
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                  </Alert>
+                )}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <LoginButton />
             </CardFooter>
           </form>
-    )
-}
-
-export default function LoginPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-4">
-        <Card>
-          <LoginForm action={authenticate} initialState={undefined} />
             <CardFooter className="flex flex-col gap-4 border-t pt-4">
                 <form action={signInWithGoogle}>
                     <GoogleButton />
