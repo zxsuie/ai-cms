@@ -26,12 +26,12 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'email',
+    type: 'token', // Use 'token' type for 6-digit codes
   });
 
   if (error) {
     console.error('OTP Verification Error:', error);
-    if (error.message.includes('Token has expired') || error.message.includes('not found')) {
+    if (error.message.includes('Token has expired') || error.message.includes('not found') || error.message.includes('is invalid')) {
       return { error: 'Invalid or expired verification code. Please request a new one.' };
     }
     return { error: error.message };
@@ -64,6 +64,7 @@ export async function resendOtp(email: string) {
         return { error: 'Email address is missing.', success: false };
     }
     
+    // Use signInWithOtp which will send a new 6-digit code.
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {

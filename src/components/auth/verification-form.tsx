@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const otpSchema = z.object({
   pin: z.string().min(6, { message: 'Your one-time password must be 6 characters.' }),
@@ -25,7 +26,7 @@ export function VerificationForm() {
   const { toast } = useToast();
   const [isResendPending, startResendTransition] = useTransition();
 
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(60);
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
@@ -45,6 +46,10 @@ export function VerificationForm() {
         description: state.error,
       });
       form.reset();
+      // Clear all input fields visually
+      inputsRef.current.forEach(input => {
+        if (input) input.value = '';
+      });
       inputsRef.current[0]?.focus();
     }
   }, [state, toast, form]);
@@ -60,13 +65,22 @@ export function VerificationForm() {
     return () => clearInterval(intervalRef.current);
   }, [resendCooldown]);
 
+  const startCooldown = () => {
+    setResendCooldown(60);
+  }
+
+  // Automatically start cooldown on component mount
+  useEffect(() => {
+    startCooldown();
+  }, []);
+
   const handleResend = () => {
     if (resendCooldown > 0) return;
     startResendTransition(async () => {
       const result = await resendOtp(email);
       if (result?.success) {
         toast({ title: 'Code Sent', description: 'A new verification code has been sent to your email.' });
-        setResendCooldown(60); // Start 60-second cooldown
+        startCooldown();
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result?.error });
       }
@@ -74,26 +88,56 @@ export function VerificationForm() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const { value } = e.target;
-    const currentPin = [...(form.getValues('pin') || '')];
-    currentPin[index] = value.slice(-1);
+    const target = e.target;
+    let { value } = target;
+
+    // Only allow numeric input
+    if (!/^\d*$/.test(value)) {
+        return;
+    }
+    
+    value = value.slice(-1); // Keep only the last character
+    target.value = value;
+
+
+    const currentPin = [...(form.getValues('pin') || '      ')];
+    currentPin[index] = value;
     form.setValue('pin', currentPin.join(''));
 
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
+    
+    // Auto-submit when all fields are filled
+    if (currentPin.join('').length === 6) {
+        form.handleSubmit(() => form.control.handleSubmit(formAction)())();
+    }
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !(e.target as HTMLInputElement).value && index > 0) {
+        inputsRef.current[index - 1]?.focus();
+    }
+  }
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 6);
-    form.setValue('pin', pastedData);
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pastedData) return;
+
+    form.setValue('pin', pastedData.padEnd(6, ' '));
     pastedData.split('').forEach((char, index) => {
         if(inputsRef.current[index]) {
             (inputsRef.current[index] as HTMLInputElement).value = char;
         }
     });
-    inputsRef.current[pastedData.length -1]?.focus();
+
+    const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
+    inputsRef.current[nextIndex]?.focus();
+
+     if (pastedData.length === 6) {
+        form.handleSubmit(() => form.control.handleSubmit(formAction)())();
+    }
   };
 
   return (
@@ -112,13 +156,17 @@ export function VerificationForm() {
                     <Input
                       key={index}
                       ref={(el) => (inputsRef.current[index] = el)}
-                      {...field}
                       name={`pin-${index}`}
-                      value={field.value?.[index] || ''}
                       onChange={(e) => handleInputChange(e, index)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
                       maxLength={1}
-                      className="h-14 w-10 text-center text-lg font-mono"
+                      className={cn(
+                        "h-14 w-10 text-center text-lg font-mono",
+                         "sm:w-12 sm:h-16" // Larger on bigger screens
+                      )}
                       autoFocus={index === 0}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   ))}
                 </div>
@@ -145,6 +193,7 @@ export function VerificationForm() {
         <p className="text-muted-foreground">Didn't receive the code?</p>
         <Button
           variant="link"
+          type="button"
           className="p-0 h-auto"
           onClick={handleResend}
           disabled={resendCooldown > 0 || isResendPending}
