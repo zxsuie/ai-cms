@@ -1,8 +1,8 @@
+
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useEffect } from 'react';
 import { authenticate, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Terminal } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,25 +36,28 @@ function GoogleButton() {
     );
 }
 
-export default function LoginPage() {
-  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
-  const { toast } = useToast();
+function LoginForm({
+    action,
+    initialState
+}: {
+    action: (prevState: string | undefined, formData: FormData) => Promise<string | undefined>,
+    initialState: string | undefined
+}) {
+    const [errorMessage, dispatch] = useActionState(action, initialState);
+    const { toast } = useToast();
 
-  useEffect(() => {
-    if (errorMessage) {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: errorMessage,
-      });
-    }
-  }, [errorMessage, toast]);
+    useEffect(() => {
+        if (errorMessage) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: errorMessage,
+        });
+        }
+    }, [errorMessage, toast]);
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-4">
-        <Card>
-          <form action={dispatch}>
+    return (
+        <form action={dispatch}>
             <CardHeader>
               <CardTitle className="text-2xl font-headline">
                 iClinicMate Login
@@ -89,6 +91,15 @@ export default function LoginPage() {
               <LoginButton />
             </CardFooter>
           </form>
+    )
+}
+
+export default function LoginPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm space-y-4">
+        <Card>
+          <LoginForm action={authenticate} initialState={undefined} />
             <CardFooter className="flex flex-col gap-4 border-t pt-4">
                 <form action={signInWithGoogle}>
                     <GoogleButton />
