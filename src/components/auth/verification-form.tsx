@@ -28,6 +28,8 @@ export function VerificationForm() {
 
   const [resendCooldown, setResendCooldown] = useState(60);
   const intervalRef = useRef<NodeJS.Timeout>();
+  const formRef = useRef<HTMLFormElement>(null);
+
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
 
@@ -102,15 +104,16 @@ export function VerificationForm() {
 
     const currentPin = [...(form.getValues('pin') || '      ')];
     currentPin[index] = value;
-    form.setValue('pin', currentPin.join(''));
+    const newPin = currentPin.join('');
+    form.setValue('pin', newPin);
 
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
     
     // Auto-submit when all fields are filled
-    if (currentPin.join('').length === 6) {
-        form.handleSubmit(() => form.control.handleSubmit(formAction)())();
+    if (newPin.length === 6) {
+        formRef.current?.requestSubmit();
     }
   };
 
@@ -136,13 +139,13 @@ export function VerificationForm() {
     inputsRef.current[nextIndex]?.focus();
 
      if (pastedData.length === 6) {
-        form.handleSubmit(() => form.control.handleSubmit(formAction)())();
+        formRef.current?.requestSubmit();
     }
   };
 
   return (
     <Form {...form}>
-      <form action={formAction} className="space-y-6">
+      <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <FormField
           control={form.control}
