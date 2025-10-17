@@ -112,7 +112,8 @@ export function VerificationForm() {
     }
     
     // Auto-submit when all fields are filled
-    if (newPin.length === 6) {
+    // The `.trim()` is important to make sure we don't submit if there are still spaces
+    if (newPin.trim().length === 6) {
         formRef.current?.requestSubmit();
     }
   };
