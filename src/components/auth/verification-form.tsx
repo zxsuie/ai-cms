@@ -77,7 +77,7 @@ export function VerificationForm() {
   }, []);
 
   const handleResend = () => {
-    if (resendCooldown > 0) return;
+    if (resendCooldown > 0 || isResendPending) return;
     startResendTransition(async () => {
       const result = await resendOtp(email);
       if (result?.success) {
@@ -111,10 +111,9 @@ export function VerificationForm() {
       inputsRef.current[index + 1]?.focus();
     }
     
-    // Auto-submit when all fields are filled
-    // The `.trim()` is important to make sure we don't submit if there are still spaces
+    // Auto-submit when all fields are filled and valid
     if (newPin.trim().length === 6) {
-        formRef.current?.requestSubmit();
+      formRef.current?.requestSubmit();
     }
   };
 
@@ -139,7 +138,7 @@ export function VerificationForm() {
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputsRef.current[nextIndex]?.focus();
 
-     if (pastedData.length === 6) {
+     if (pastedData.trim().length === 6) {
         formRef.current?.requestSubmit();
     }
   };
