@@ -3,7 +3,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
-import { loginWithPasswordAndOtp, signInWithGoogle } from '@/app/login/actions';
+import { loginWithPassword, signInWithGoogle } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,7 +24,7 @@ function LoginButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" aria-disabled={pending}>
-      {pending ? 'Sending OTP...' : 'Sign In'}
+      {pending ? 'Signing in...' : 'Sign In'}
     </Button>
   );
 }
@@ -39,7 +39,7 @@ function GoogleButton() {
 }
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useActionState(loginWithPasswordAndOtp, undefined);
+  const [errorMessage, dispatch] = useActionState(loginWithPassword, undefined);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -51,10 +51,17 @@ export default function LoginPage() {
                 iClinicMate Login
               </CardTitle>
               <CardDescription>
-                Enter your credentials to receive a verification code.
+                Enter your credentials to sign in to your account.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {errorMessage && (
+                <Alert variant="destructive">
+                  <Terminal className="h-4 w-4" />
+                  <AlertTitle>Login Failed</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

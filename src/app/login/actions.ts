@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { differenceInHours } from 'date-fns';
 import { db } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
+import { getIronSession } from 'iron-session';
+import { cookies } from 'next/headers';
+import { sessionOptions, type SessionData } from '@/lib/session';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -15,7 +18,7 @@ const loginSchema = z.object({
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_HOURS = 1;
 
-export async function loginWithPasswordAndOtp(
+export async function loginWithPassword(
   prevState: string | undefined,
   formData: FormData,
 ) {
@@ -37,14 +40,13 @@ export async function loginWithPasswordAndOtp(
       }
     }
 
-    // Step 1: Verify the password. This does NOT log the user in but confirms the credential is valid.
-    const { error: passwordError } = await supabase.auth.signInWithPassword({
+    const { data: { session: supabaseSession }, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (passwordError) {
-      if (profile) {
+    if (error) {
+       if (profile) {
         const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
         await db.updateProfile(profile.id, {
           failedLoginAttempts: newAttemptCount,
@@ -54,34 +56,42 @@ export async function loginWithPasswordAndOtp(
            return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
         }
       }
-      return passwordError.message || 'Invalid login credentials. Please try again.';
+      return error.message || 'Invalid login credentials. Please try again.';
     }
 
-    // Step 2: If password is correct, trigger the OTP email send.
-    // This starts the passwordless flow that the verification page will complete.
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false, // Don't create a new user if they don't exist
-      }
-    });
-
-    if (otpError) {
-      console.error('OTP trigger error:', otpError);
-      return 'Could not send verification code. Please try again.';
+     if (!supabaseSession) {
+      // This case can happen if the user's email is not confirmed yet.
+      // Supabase sends a confirmation link in this scenario.
+      return 'Please check your email to confirm your account before logging in.';
     }
 
-    // Reset failed attempts on successful password verification
+
+    // Reset failed attempts on successful login
     if (profile) {
       await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
     }
+
+    const { user: authUser } = supabaseSession;
+      
+    const fullProfile = await db.getProfile(authUser.id);
+    if (!fullProfile) {
+      await supabase.auth.signOut();
+      return 'User profile not found after login. Please contact support.';
+    }
+
+    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+    session.isLoggedIn = true;
+    session.user = fullProfile;
+    await session.save();
+
+    const isAdmin = fullProfile.role === 'admin' || fullProfile.role === 'super_admin';
+    redirect(isAdmin ? '/dashboard' : '/appointments');
+
 
   } catch (error: any) {
     console.error('Authentication error:', error);
     return 'An unexpected error occurred. Please try again.';
   }
-  
-  redirect(`/verify?email=${encodeURIComponent(email)}`);
 }
 
 
