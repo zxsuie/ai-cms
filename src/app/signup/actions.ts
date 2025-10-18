@@ -45,7 +45,8 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
     }
 
     // On successful signup, Supabase sends a confirmation email by default.
-    // We will now also send an OTP for immediate verification.
+    // For our flow, we want to immediately follow up with an OTP for verification.
+    // The signUp call already created a user and a session, so we can send the OTP.
     const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -55,7 +56,8 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
     if (otpError) {
         console.error('OTP sending error after signup:', otpError);
-        // User is created but OTP failed. Ask them to log in.
+        // User is created but OTP failed. Sign them out and ask them to log in.
+        await supabase.auth.signOut();
         return { 
             message: "Account created, but couldn't send verification code. Please try logging in.", 
             success: true 

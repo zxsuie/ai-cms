@@ -27,7 +27,7 @@ export async function loginWithPasswordAndOtp(
     const { email, password } = parsed.data;
 
     // First, sign in with password to verify credentials.
-    // This creates a session, which we will immediately sign out of.
+    // This creates a temporary session.
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -37,11 +37,10 @@ export async function loginWithPasswordAndOtp(
       return authError?.message || 'Invalid login credentials. Please try again.';
     }
 
-    // Immediately sign out to invalidate the session.
-    // This is crucial because we want to force an OTP verification.
-    await supabase.auth.signOut();
+    // DO NOT sign out here. The session is needed for the OTP to be linked.
 
-    // Now, send the OTP to the user's email.
+    // Now, send the OTP to the user's email. This will be associated
+    // with the session we just created.
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -51,6 +50,8 @@ export async function loginWithPasswordAndOtp(
 
     if (otpError) {
       console.error('OTP Sending Error:', otpError);
+      // Even if OTP fails, sign the user out to prevent a dangling session.
+      await supabase.auth.signOut();
       return 'Could not send verification code. Please try again.';
     }
     
