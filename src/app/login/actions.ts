@@ -90,7 +90,8 @@ export async function loginWithPassword(
 
   } catch (error: any) {
     console.error('Authentication error:', error);
-    return 'An unexpected error occurred. Please try again.';
+    // Return a more specific error message if available
+    return error.message || 'An unexpected error occurred. Please try again.';
   }
 }
 
