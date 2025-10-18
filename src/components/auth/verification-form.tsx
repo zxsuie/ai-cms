@@ -149,7 +149,10 @@ export function VerificationForm() {
     value = value.slice(-1);
     target.value = value;
     
-    // This is for visual progression, but we will construct the final pin on submit
+    // Update the react-hook-form state
+    const currentPin = inputsRef.current.map(input => input?.value || '').join('');
+    form.setValue('pin', currentPin, { shouldValidate: currentPin.length === 6 });
+
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -172,25 +175,21 @@ export function VerificationForm() {
         }
     });
 
+    const fullPin = inputsRef.current.map(input => input?.value || '').join('');
+    form.setValue('pin', fullPin, { shouldValidate: true });
+
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputsRef.current[nextIndex]?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formElement = e.currentTarget;
-    const pin = inputsRef.current.map(input => input?.value || '').join('');
-    
-    // Manually set the pin value on the form data
-    const formData = new FormData(formElement);
-    formData.set('pin', pin);
-
-    // Validate with react-hook-form before calling the server action
-    form.handleSubmit(() => {
-        formAction(formData);
-    })(e);
+  const onSubmit = (data: z.infer<typeof otpSchema>) => {
+    const formData = new FormData();
+    formData.set('email', email);
+    formData.set('pin', data.pin);
+    formAction(formData);
   };
   
+
   const getBlockTimeRemaining = () => {
     if (!blockExpiresAt) return '';
     const remaining = Math.max(0, blockExpiresAt - Date.now());
@@ -201,7 +200,7 @@ export function VerificationForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <FormField
           control={form.control}
