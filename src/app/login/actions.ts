@@ -60,8 +60,6 @@ export async function loginWithPassword(
     }
 
      if (!supabaseSession) {
-      // This case can happen if the user's email is not confirmed yet.
-      // Supabase sends a confirmation link in this scenario.
       return 'Please check your email to confirm your account before logging in.';
     }
 
@@ -84,15 +82,15 @@ export async function loginWithPassword(
     session.user = fullProfile;
     await session.save();
 
-    const isAdmin = fullProfile.role === 'admin' || fullProfile.role === 'super_admin';
-    redirect(isAdmin ? '/dashboard' : '/appointments');
-
-
   } catch (error: any) {
     console.error('Authentication error:', error);
-    // Return a more specific error message if available
     return error.message || 'An unexpected error occurred. Please try again.';
   }
+
+  // Redirect must be called outside of the try-catch block
+  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+  const isAdmin = session.user?.role === 'admin' || session.user?.role === 'super_admin';
+  redirect(isAdmin ? '/dashboard' : '/appointments');
 }
 
 
