@@ -148,12 +148,8 @@ export function VerificationForm() {
     
     value = value.slice(-1);
     target.value = value;
-
-    const currentPin = [...(form.getValues('pin') || '      ')];
-    currentPin[index] = value;
-    const newPin = currentPin.join('');
-    form.setValue('pin', newPin);
-
+    
+    // This is for visual progression, but we will construct the final pin on submit
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -169,8 +165,7 @@ export function VerificationForm() {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pastedData) return;
-
-    form.setValue('pin', pastedData.padEnd(6, ' '));
+    
     pastedData.split('').forEach((char, index) => {
         if(inputsRef.current[index]) {
             (inputsRef.current[index] as HTMLInputElement).value = char;
@@ -179,6 +174,18 @@ export function VerificationForm() {
 
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputsRef.current[nextIndex]?.focus();
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const pin = inputsRef.current.map(input => input?.value || '').join('');
+    form.setValue('pin', pin);
+    
+    form.handleSubmit(() => {
+        const formData = new FormData(e.currentTarget);
+        formData.set('pin', pin);
+        formAction(formData);
+    })(e);
   };
   
   const getBlockTimeRemaining = () => {
@@ -191,7 +198,7 @@ export function VerificationForm() {
 
   return (
     <Form {...form}>
-      <form action={formAction} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <FormField
           control={form.control}
