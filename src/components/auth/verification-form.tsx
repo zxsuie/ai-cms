@@ -12,8 +12,6 @@ import { useActionState, useEffect, useRef, useState, useTransition } from 'reac
 import { verifyOtp, resendOtp } from '@/app/verify/actions';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const otpSchema = z.object({
@@ -28,8 +26,6 @@ export function VerificationForm() {
 
   const [resendCooldown, setResendCooldown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout>();
-  const formRef = useRef<HTMLFormElement>(null);
-
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
 
@@ -85,7 +81,7 @@ export function VerificationForm() {
         toast({ title: 'Code Sent', description: 'A new verification code has been sent to your email.' });
         startCooldown();
       } else {
-        toast({ variant: 'destructive', title: 'Error', description: result?.error });
+        toast({ variant: 'destructive', title: 'Error', description: result?.error || 'Failed to resend code.' });
       }
     });
   };
@@ -102,7 +98,6 @@ export function VerificationForm() {
     value = value.slice(-1); // Keep only the last character
     target.value = value;
 
-
     const currentPin = [...(form.getValues('pin') || '      ')];
     currentPin[index] = value;
     const newPin = currentPin.join('');
@@ -110,13 +105,6 @@ export function VerificationForm() {
 
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
-    }
-    
-    // Auto-submit when all fields are filled and valid
-    if (newPin.trim().length === 6) {
-      if (formRef.current) {
-        formRef.current.requestSubmit();
-      }
     }
   };
 
@@ -140,17 +128,11 @@ export function VerificationForm() {
 
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputsRef.current[nextIndex]?.focus();
-
-     if (pastedData.trim().length === 6) {
-       if (formRef.current) {
-          formRef.current.requestSubmit();
-       }
-    }
   };
 
   return (
     <Form {...form}>
-      <form ref={formRef} action={formAction} className="space-y-6">
+      <form action={formAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <FormField
           control={form.control}
