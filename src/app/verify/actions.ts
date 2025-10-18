@@ -26,7 +26,7 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'token', // Use 'token' type for 6-digit codes
+    type: 'token',
   });
 
   if (error) {
@@ -79,3 +79,5 @@ export async function resendOtp(email: string) {
 
     return { success: true };
 }
+
+    

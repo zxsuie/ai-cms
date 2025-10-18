@@ -18,6 +18,9 @@ const otpSchema = z.object({
   pin: z.string().min(6, { message: 'Your one-time password must be 6 characters.' }),
 });
 
+const MAX_RESEND_ATTEMPTS = 3;
+const RESEND_COOLDOWN_HOURS = 1;
+
 export function VerificationForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -25,6 +28,10 @@ export function VerificationForm() {
   const [isResendPending, startResendTransition] = useTransition();
 
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockExpiresAt, setBlockExpiresAt] = useState<number | null>(null);
+
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
@@ -36,28 +43,27 @@ export function VerificationForm() {
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  useEffect(() => {
-    if (state?.error) {
-      toast({
-        variant: 'destructive',
-        title: 'Verification Failed',
-        description: state.error,
-      });
-      form.reset();
-      // Clear all input fields visually
-      inputsRef.current.forEach(input => {
-        if (input) input.value = '';
-      });
-      inputsRef.current[0]?.focus();
+  // Load state from localStorage on mount
+   useEffect(() => {
+    const storedAttempts = localStorage.getItem(`resendAttempts_${email}`);
+    const storedBlockExpires = localStorage.getItem(`blockExpires_${email}`);
+
+    const now = Date.now();
+
+    if (storedBlockExpires && now < Number(storedBlockExpires)) {
+      setIsBlocked(true);
+      setBlockExpiresAt(Number(storedBlockExpires));
+    } else {
+        localStorage.removeItem(`blockExpires_${email}`);
+        localStorage.removeItem(`resendAttempts_${email}`);
     }
-  }, [state, toast, form]);
 
-  useEffect(() => {
-    // Start cooldown on mount
-    startCooldown();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (storedAttempts && !isBlocked) {
+      setResendAttempts(Number(storedAttempts));
+    }
+  }, [email, isBlocked]);
 
+   // Countdown timer for resend button
   useEffect(() => {
     if (resendCooldown > 0) {
       intervalRef.current = setInterval(() => {
@@ -69,20 +75,68 @@ export function VerificationForm() {
     return () => clearInterval(intervalRef.current);
   }, [resendCooldown]);
 
-  const startCooldown = () => {
+  // Countdown timer for block period
+  useEffect(() => {
+    if (isBlocked && blockExpiresAt) {
+      const interval = setInterval(() => {
+        const now = Date.now();
+        if (now > blockExpiresAt) {
+          setIsBlocked(false);
+          setBlockExpiresAt(null);
+          setResendAttempts(0);
+          localStorage.removeItem(`resendAttempts_${email}`);
+          localStorage.removeItem(`blockExpires_${email}`);
+          clearInterval(interval);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isBlocked, blockExpiresAt, email]);
+
+
+  // Handle verification errors
+  useEffect(() => {
+    if (state?.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Verification Failed',
+        description: state.error,
+      });
+      form.reset();
+      inputsRef.current.forEach(input => {
+        if (input) input.value = '';
+      });
+      inputsRef.current[0]?.focus();
+    }
+  }, [state, toast, form]);
+
+
+  const startButtonCooldown = () => {
     setResendCooldown(60);
   }
 
   const handleResend = () => {
-    if (resendCooldown > 0 || isResendPending) return;
+    if (resendCooldown > 0 || isResendPending || isBlocked) return;
+
     startResendTransition(async () => {
-      const result = await resendOtp(email);
-      if (result?.success) {
-        toast({ title: 'Code Sent', description: 'A new verification code has been sent to your email.' });
-        startCooldown();
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: result?.error || 'Failed to resend code.' });
-      }
+        const attempts = resendAttempts + 1;
+        const result = await resendOtp(email);
+
+        if (result?.success) {
+            toast({ title: 'Code Sent', description: 'A new verification code has been sent.' });
+            setResendAttempts(attempts);
+            localStorage.setItem(`resendAttempts_${email}`, String(attempts));
+            startButtonCooldown();
+
+            if (attempts >= MAX_RESEND_ATTEMPTS) {
+                const newBlockExpiresAt = Date.now() + RESEND_COOLDOWN_HOURS * 60 * 60 * 1000;
+                setIsBlocked(true);
+                setBlockExpiresAt(newBlockExpiresAt);
+                localStorage.setItem(`blockExpires_${email}`, String(newBlockExpiresAt));
+            }
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result?.error || 'Failed to resend code.' });
+        }
     });
   };
 
@@ -90,12 +144,9 @@ export function VerificationForm() {
     const target = e.target;
     let { value } = target;
 
-    // Only allow numeric input
-    if (!/^\d*$/.test(value)) {
-        return;
-    }
+    if (!/^\d*$/.test(value)) return;
     
-    value = value.slice(-1); // Keep only the last character
+    value = value.slice(-1);
     target.value = value;
 
     const currentPin = [...(form.getValues('pin') || '      ')];
@@ -129,6 +180,14 @@ export function VerificationForm() {
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputsRef.current[nextIndex]?.focus();
   };
+  
+  const getBlockTimeRemaining = () => {
+    if (!blockExpiresAt) return '';
+    const remaining = Math.max(0, blockExpiresAt - Date.now());
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  };
 
   return (
     <Form {...form}>
@@ -152,7 +211,7 @@ export function VerificationForm() {
                       maxLength={1}
                       className={cn(
                         "h-14 w-10 text-center text-lg font-mono",
-                         "sm:w-12 sm:h-16" // Larger on bigger screens
+                         "sm:w-12 sm:h-16"
                       )}
                       autoFocus={index === 0}
                       inputMode="numeric"
@@ -172,21 +231,34 @@ export function VerificationForm() {
         </Button>
       </form>
       <div className="mt-4 text-center text-sm">
-        <p className="text-muted-foreground">Didn't receive the code?</p>
-        <Button
-          variant="link"
-          type="button"
-          className="p-0 h-auto"
-          onClick={handleResend}
-          disabled={resendCooldown > 0 || isResendPending}
-        >
-          {isResendPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            `Resend code ${resendCooldown > 0 ? `in ${resendCooldown}s` : ''}`
-          )}
-        </Button>
+        {isBlocked ? (
+             <p className="text-destructive">
+                Too many attempts. Please try again in {getBlockTimeRemaining()}.
+            </p>
+        ) : (
+            <>
+                <p className="text-muted-foreground">Didn't receive the code?</p>
+                <Button
+                variant="link"
+                type="button"
+                className="p-0 h-auto"
+                onClick={handleResend}
+                disabled={resendCooldown > 0 || isResendPending || isBlocked}
+                >
+                {isResendPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    `Resend code ${resendCooldown > 0 ? `in ${resendCooldown}s` : ''}`
+                )}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                    {MAX_RESEND_ATTEMPTS - resendAttempts} attempts remaining.
+                </p>
+            </>
+        )}
       </div>
     </Form>
   );
 }
+
+    
