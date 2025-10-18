@@ -178,12 +178,15 @@ export function VerificationForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formElement = e.currentTarget;
     const pin = inputsRef.current.map(input => input?.value || '').join('');
-    form.setValue('pin', pin);
     
+    // Manually set the pin value on the form data
+    const formData = new FormData(formElement);
+    formData.set('pin', pin);
+
+    // Validate with react-hook-form before calling the server action
     form.handleSubmit(() => {
-        const formData = new FormData(e.currentTarget);
-        formData.set('pin', pin);
         formAction(formData);
     })(e);
   };
