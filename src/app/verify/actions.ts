@@ -46,7 +46,7 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'email', // Use 'email' for OTP after password login
+    type: 'email', // Correct type for verifying an email OTP for MFA or signup
   });
 
   if (error) {
@@ -99,9 +99,10 @@ export async function resendOtp(email: string) {
         return { error: 'Email address is missing.', success: false };
     }
     
-    // Use resend to send a new OTP for an existing session
+    // This action is used to resend a code if the user didn't receive one
+    // during login or signup. It will send the appropriate type of code.
     const { error } = await supabase.auth.resend({
-        type: 'signup', // or 'sms' depending on your flow
+        type: 'signup', // Use 'signup' type which covers both new user and generic OTP resends
         email: email,
     });
 

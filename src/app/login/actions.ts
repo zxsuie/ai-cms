@@ -39,14 +39,14 @@ export async function loginWithPasswordAndOtp(
       }
     }
 
-    // First, sign in with password to verify credentials.
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    // Sign in with password. Supabase will automatically send an OTP if MFA is enabled for the user.
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError || !authData.user) {
-      // Handle failed login attempt
+    if (error) {
+       // Handle failed login attempt
       if (profile) {
         const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
         await db.updateProfile(profile.id, {
@@ -57,22 +57,13 @@ export async function loginWithPasswordAndOtp(
            return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
         }
       }
-      return authError?.message || 'Invalid login credentials. Please try again.';
-    }
-
-    // On successful password validation, send the OTP.
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      },
-    });
-
-    if (otpError) {
-      console.error('OTP Sending Error:', otpError);
-      return 'Could not send verification code. Please try again.';
+      return error.message || 'Invalid login credentials. Please try again.';
     }
     
+    // If the login is successful but requires MFA, the user object will exist but no session.
+    // If MFA is not required, a session will be created, but we will still redirect to verify
+    // for a consistent flow. The verify step will handle session creation.
+
     // Reset failed attempts on successful password verification
     if (profile) {
       await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });

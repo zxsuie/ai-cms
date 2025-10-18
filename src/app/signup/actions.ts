@@ -21,7 +21,9 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
     const { email, password, confirmPassword, ...profileData } = parsed.data;
 
-    // The redirect URL is not needed here as we will redirect manually.
+    // The `signUp` function will send a verification email by default.
+    // Supabase handles sending the appropriate verification type (link or code)
+    // based on your project's email template settings.
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -43,27 +45,8 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
     if (!data.user) {
         return { message: 'Could not create user. Please try again.', success: false };
     }
-
-    // On successful signup, Supabase sends a confirmation email by default.
-    // For our flow, we want to immediately follow up with an OTP for verification.
-    // The signUp call already created a user and a session, so we can send the OTP.
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-            shouldCreateUser: false,
-        }
-    });
-
-    if (otpError) {
-        console.error('OTP sending error after signup:', otpError);
-        // User is created but OTP failed. Sign them out and ask them to log in.
-        await supabase.auth.signOut();
-        return { 
-            message: "Account created, but couldn't send verification code. Please try logging in.", 
-            success: true 
-        };
-    }
     
-    // Redirect to the OTP verification page
+    // Redirect to the OTP verification page. The user will get the code from the email
+    // that Supabase sent as part of the signUp process.
     redirect(`/verify?email=${encodeURIComponent(email)}`);
 }
