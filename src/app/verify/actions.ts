@@ -43,10 +43,11 @@ export async function verifyOtp(prevState: any, formData: FormData) {
     }
   }
 
+  // Verify the OTP. The type 'signup' is used because it's a generic email-based OTP.
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'email', // Correct type for verifying an email OTP for MFA or signup
+    type: 'signup', 
   });
 
   if (error) {

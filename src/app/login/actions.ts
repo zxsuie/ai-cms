@@ -39,14 +39,13 @@ export async function loginWithPasswordAndOtp(
       }
     }
 
-    // Sign in with password. Supabase will automatically send an OTP if MFA is enabled for the user.
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // Step 1: Sign in with password.
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-       // Handle failed login attempt
+    if (signInError) {
       if (profile) {
         const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
         await db.updateProfile(profile.id, {
@@ -57,12 +56,20 @@ export async function loginWithPasswordAndOtp(
            return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
         }
       }
-      return error.message || 'Invalid login credentials. Please try again.';
+      return signInError.message || 'Invalid login credentials. Please try again.';
     }
     
-    // If the login is successful but requires MFA, the user object will exist but no session.
-    // If MFA is not required, a session will be created, but we will still redirect to verify
-    // for a consistent flow. The verify step will handle session creation.
+    // Step 2: If password is correct, explicitly trigger the OTP email send.
+    // This is the crucial step to ensure the OTP email is dispatched for MFA.
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup', // 'signup' type works for both signup and MFA OTPs
+      email: email,
+    });
+
+    if (resendError) {
+        console.error('OTP trigger error:', resendError);
+        return 'Could not send verification code. Please try again.';
+    }
 
     // Reset failed attempts on successful password verification
     if (profile) {
@@ -70,9 +77,6 @@ export async function loginWithPasswordAndOtp(
     }
 
   } catch (error: any) {
-    if (error.message.includes('Invalid login credentials')) {
-      return 'Invalid email or password.';
-    }
     console.error('Authentication error:', error);
     return 'An unexpected error occurred. Please try again.';
   }
