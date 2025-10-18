@@ -127,4 +127,6 @@ export type Profile = {
     studentSection?: string;
     department?: string;
     jobTitle?: string;
+    failedLoginAttempts?: number;
+    lastFailedLoginAt?: string | null;
 }

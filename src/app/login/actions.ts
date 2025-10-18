@@ -2,69 +2,90 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getIronSession } from 'iron-session';
-import { cookies } from 'next/headers';
-import { sessionOptions, type SessionData } from '@/lib/session';
-import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
+import { differenceInHours } from 'date-fns';
 import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1, "Password is required"),
+  email: z.string().email(),
+  password: z.string().min(1, "Password is required"),
 });
+
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_HOURS = 1;
 
 export async function loginWithPasswordAndOtp(
   prevState: string | undefined,
   formData: FormData,
 ) {
+  const parsed = loginSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return 'Invalid email or password format.';
+  }
+
+  const { email, password } = parsed.data;
+
   try {
-    const parsed = loginSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) {
-      return 'Invalid email or password format.';
+    const profile = await db.getProfileByEmail(email);
+
+    // Check if user is locked out
+    if (profile && profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
+      if (profile.lastFailedLoginAt && differenceInHours(new Date(), new Date(profile.lastFailedLoginAt)) < LOCKOUT_HOURS) {
+        return `Too many failed attempts. Please try again in ${LOCKOUT_HOURS} hour.`;
+      } else {
+        // If lockout period has passed, reset attempts
+        await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
+      }
     }
 
-    const { email, password } = parsed.data;
-
     // First, sign in with password to verify credentials.
-    // This creates a temporary session.
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (authError || !authData.user) {
+      // Handle failed login attempt
+      if (profile) {
+        const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
+        await db.updateProfile(profile.id, {
+          failedLoginAttempts: newAttemptCount,
+          lastFailedLoginAt: new Date().toISOString(),
+        });
+        if (newAttemptCount >= MAX_ATTEMPTS) {
+           return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
+        }
+      }
       return authError?.message || 'Invalid login credentials. Please try again.';
     }
 
-    // DO NOT sign out here. The session is needed for the OTP to be linked.
-
-    // Now, send the OTP to the user's email. This will be associated
-    // with the session we just created.
+    // On successful password validation, send the OTP.
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        shouldCreateUser: false, // Don't create a new user if they don't exist
+        shouldCreateUser: false,
       },
     });
 
     if (otpError) {
       console.error('OTP Sending Error:', otpError);
-      // Even if OTP fails, sign the user out to prevent a dangling session.
-      await supabase.auth.signOut();
       return 'Could not send verification code. Please try again.';
     }
     
+    // Reset failed attempts on successful password verification
+    if (profile) {
+      await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
+    }
+
   } catch (error: any) {
     if (error.message.includes('Invalid login credentials')) {
-        return 'Invalid email or password.';
+      return 'Invalid email or password.';
     }
     console.error('Authentication error:', error);
     return 'An unexpected error occurred. Please try again.';
   }
-
-  const email = formData.get('email') as string;
-  // Redirect to the verification page, passing the email as a query parameter.
+  
   redirect(`/verify?email=${encodeURIComponent(email)}`);
 }
 

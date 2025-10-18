@@ -55,7 +55,35 @@ export const db = {
     }
     return data ? toCamelCase(data) as Profile : null;
   },
+
+  getProfileByEmail: async (email: string): Promise<Profile | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .single();
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching profile by email:', error);
+      return null;
+    }
+    return data ? toCamelCase(data) as Profile : null;
+  },
   
+  updateProfile: async (userId: string, updates: Partial<Profile>): Promise<Profile | null> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(toSnakeCase(updates))
+        .eq('id', userId)
+        .select()
+        .single();
+    
+    if (error) {
+        console.error('Error updating profile:', error);
+        return null;
+    }
+    return toCamelCase(data) as Profile;
+  },
+
   // Visits
   getVisits: async (): Promise<StudentVisit[]> => {
     const {data, error} = await supabase
