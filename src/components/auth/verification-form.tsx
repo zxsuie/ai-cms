@@ -260,5 +260,3 @@ export function VerificationForm() {
     </Form>
   );
 }
-
-    
