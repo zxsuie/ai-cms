@@ -35,9 +35,9 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   }
 
   // Check if user is locked out
-  if (profile && profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
+  if (profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
     if (profile.lastFailedLoginAt && differenceInHours(new Date(), new Date(profile.lastFailedLoginAt)) < LOCKOUT_HOURS) {
-      return { error: `Too many failed attempts. Please try again in ${LOCKOUT_HOURS} hour.` };
+      return { error: `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.` };
     } else {
       await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
     }
@@ -46,7 +46,7 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'token',
+    type: 'email', // Use 'email' for OTP after password login
   });
 
   if (error) {
@@ -99,13 +99,12 @@ export async function resendOtp(email: string) {
         return { error: 'Email address is missing.', success: false };
     }
     
-    // Use signInWithOtp which will send a new 6-digit code.
-    const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-            shouldCreateUser: false,
-        }
+    // Use resend to send a new OTP for an existing session
+    const { error } = await supabase.auth.resend({
+        type: 'signup', // or 'sms' depending on your flow
+        email: email,
     });
+
 
     if (error) {
         console.error('Resend OTP error:', error);

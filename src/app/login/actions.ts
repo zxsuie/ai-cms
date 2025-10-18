@@ -32,7 +32,7 @@ export async function loginWithPasswordAndOtp(
     // Check if user is locked out
     if (profile && profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
       if (profile.lastFailedLoginAt && differenceInHours(new Date(), new Date(profile.lastFailedLoginAt)) < LOCKOUT_HOURS) {
-        return `Too many failed attempts. Please try again in ${LOCKOUT_HOURS} hour.`;
+        return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
       } else {
         // If lockout period has passed, reset attempts
         await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
