@@ -34,7 +34,6 @@ export function VerificationForm() {
   const [blockExpiresAt, setBlockExpiresAt] = useState<number | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout>();
-  const formRef = useRef<HTMLFormElement>(null);
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
 
@@ -44,6 +43,7 @@ export function VerificationForm() {
   });
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const hiddenPinRef = useRef<HTMLInputElement | null>(null);
 
   // Load state from localStorage on mount
    useEffect(() => {
@@ -104,10 +104,13 @@ export function VerificationForm() {
         title: 'Verification Failed',
         description: state.error,
       });
-      form.reset();
+      form.setValue('pin', '');
       inputsRef.current.forEach(input => {
         if (input) input.value = '';
       });
+      if (hiddenPinRef.current) {
+        hiddenPinRef.current.value = '';
+      }
       inputsRef.current[0]?.focus();
     }
   }, [state, toast, form]);
@@ -151,8 +154,12 @@ export function VerificationForm() {
     value = value.slice(-1);
     target.value = value;
     
-    // Update the react-hook-form state
+    // Update the hidden input that is part of the form
     const currentPin = inputsRef.current.map(input => input?.value || '').join('');
+    if (hiddenPinRef.current) {
+        hiddenPinRef.current.value = currentPin;
+    }
+    // Also update RHF state for validation purposes if needed, although not strictly necessary for submission
     form.setValue('pin', currentPin, { shouldValidate: currentPin.length === 6 });
 
     if (value && index < 5) {
@@ -178,6 +185,9 @@ export function VerificationForm() {
     });
 
     const fullPin = inputsRef.current.map(input => input?.value || '').join('');
+     if (hiddenPinRef.current) {
+        hiddenPinRef.current.value = fullPin;
+    }
     form.setValue('pin', fullPin, { shouldValidate: true });
 
     const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
@@ -195,67 +205,35 @@ export function VerificationForm() {
   return (
     <Form {...form}>
       <form
-        ref={formRef}
         action={formAction}
-        onSubmit={(evt) => {
-          evt.preventDefault();
-          form.handleSubmit(() => {
-            // Re-read from the DOM directly to ensure we have the latest pin
-            const currentPin = inputsRef.current.map(input => input?.value || '').join('');
-            form.setValue('pin', currentPin);
-
-            // Now, we can safely submit the form data using the form reference
-            if (formRef.current) {
-              const formData = new FormData(formRef.current);
-              formData.set('pin', currentPin); // ensure it's set
-              formAction(formData);
-            }
-          })(evt);
-        }}
         className="space-y-6"
       >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input type="hidden" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="pin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="sr-only">One-Time Password</FormLabel>
-              <FormControl>
-                <div className="flex justify-center gap-2" onPaste={handlePaste}>
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <Input
-                      key={index}
-                      ref={(el) => (inputsRef.current[index] = el)}
-                      name={`pin-digit-${index}`}
-                      onChange={(e) => handleInputChange(e, index)}
-                      onKeyDown={(e) => handleKeyDown(e, index)}
-                      maxLength={1}
-                      className={cn(
-                        "h-14 w-10 text-center text-lg font-mono",
-                         "sm:w-12 sm:h-16"
-                      )}
-                      autoFocus={index === 0}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage className="text-center" />
-            </FormItem>
-          )}
-        />
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="pin" ref={hiddenPinRef} />
+
+        <div className="space-y-2">
+            <FormLabel className="sr-only">One-Time Password</FormLabel>
+            <div className="flex justify-center gap-2" onPaste={handlePaste}>
+                {Array.from({ length: 6 }).map((_, index) => (
+                <Input
+                    key={index}
+                    ref={(el) => (inputsRef.current[index] = el)}
+                    name={`pin-digit-${index}`}
+                    onChange={(e) => handleInputChange(e, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    maxLength={1}
+                    className={cn(
+                    "h-14 w-10 text-center text-lg font-mono",
+                        "sm:w-12 sm:h-16"
+                    )}
+                    autoFocus={index === 0}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                />
+                ))}
+            </div>
+            {form.formState.errors.pin && <FormMessage className="text-center">{form.formState.errors.pin.message}</FormMessage>}
+        </div>
 
         <Button type="submit" className="w-full" disabled={isVerifyPending}>
           {isVerifyPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
