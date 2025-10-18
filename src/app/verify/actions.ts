@@ -45,7 +45,7 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'email', 
+    type: 'email', // This is the critical change to match the login flow.
   });
 
   if (error) {
