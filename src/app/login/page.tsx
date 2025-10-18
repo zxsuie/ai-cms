@@ -74,13 +74,6 @@ export default function LoginPage() {
                   required
                 />
               </div>
-               {errorMessage && (
-                  <Alert variant="destructive" className="text-xs">
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>Login Failed</AlertTitle>
-                    <AlertDescription>{errorMessage}</AlertDescription>
-                  </Alert>
-                )}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <LoginButton />
