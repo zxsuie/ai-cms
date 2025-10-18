@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const otpSchema = z.object({
   pin: z.string().min(6, { message: 'Your one-time password must be 6 characters.' }),
+  email: z.string().email(),
 });
 
 const MAX_RESEND_ATTEMPTS = 3;
@@ -33,12 +34,13 @@ export function VerificationForm() {
   const [blockExpiresAt, setBlockExpiresAt] = useState<number | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout>();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [state, formAction, isVerifyPending] = useActionState(verifyOtp, undefined);
 
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { pin: '' },
+    defaultValues: { pin: '', email: email },
   });
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -182,14 +184,6 @@ export function VerificationForm() {
     inputsRef.current[nextIndex]?.focus();
   };
 
-  const onSubmit = (data: z.infer<typeof otpSchema>) => {
-    const formData = new FormData();
-    formData.set('email', email);
-    formData.set('pin', data.pin);
-    formAction(formData);
-  };
-  
-
   const getBlockTimeRemaining = () => {
     if (!blockExpiresAt) return '';
     const remaining = Math.max(0, blockExpiresAt - Date.now());
@@ -200,8 +194,37 @@ export function VerificationForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <input type="hidden" name="email" value={email} />
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={(evt) => {
+          evt.preventDefault();
+          form.handleSubmit(() => {
+            // Re-read from the DOM directly to ensure we have the latest pin
+            const currentPin = inputsRef.current.map(input => input?.value || '').join('');
+            form.setValue('pin', currentPin);
+
+            // Now, we can safely submit the form data using the form reference
+            if (formRef.current) {
+              const formData = new FormData(formRef.current);
+              formData.set('pin', currentPin); // ensure it's set
+              formAction(formData);
+            }
+          })(evt);
+        }}
+        className="space-y-6"
+      >
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input type="hidden" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="pin"
@@ -214,7 +237,7 @@ export function VerificationForm() {
                     <Input
                       key={index}
                       ref={(el) => (inputsRef.current[index] = el)}
-                      name={`pin-${index}`}
+                      name={`pin-digit-${index}`}
                       onChange={(e) => handleInputChange(e, index)}
                       onKeyDown={(e) => handleKeyDown(e, index)}
                       maxLength={1}
