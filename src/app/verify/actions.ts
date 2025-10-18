@@ -30,11 +30,9 @@ export async function verifyOtp(prevState: any, formData: FormData) {
   const profile = await db.getProfileByEmail(email);
 
   if (!profile) {
-    // Should not happen in this flow, but handle defensively
     return { error: 'User profile not found. Please try logging in again.' };
   }
 
-  // Check if user is locked out
   if (profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
     if (profile.lastFailedLoginAt && differenceInHours(new Date(), new Date(profile.lastFailedLoginAt)) < LOCKOUT_HOURS) {
       return { error: `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.` };
@@ -43,15 +41,14 @@ export async function verifyOtp(prevState: any, formData: FormData) {
     }
   }
 
-  // Verify the OTP. The type 'signup' is used because it's a generic email-based OTP.
+  // Verify the OTP. The type 'email' is used for OTPs sent via `signInWithOtp`.
   const { data: { session: supabaseSession }, error } = await supabase.auth.verifyOtp({
     email,
     token: pin,
-    type: 'signup', 
+    type: 'email', 
   });
 
   if (error) {
-     // Handle failed verification attempt
     const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
     await db.updateProfile(profile.id, {
         failedLoginAttempts: newAttemptCount,
@@ -73,16 +70,13 @@ export async function verifyOtp(prevState: any, formData: FormData) {
     return { error: 'Could not verify your identity. Please try again.' };
   }
   
-  // Reset failed attempts on successful verification
   await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
 
-
-  // OTP is valid, now create the application session
   const { user: authUser } = supabaseSession;
-  const fullProfile = await db.getProfile(authUser.id); // Re-fetch full profile after verification
+  const fullProfile = await db.getProfile(authUser.id);
   if (!fullProfile) {
     await supabase.auth.signOut();
-    return { error: 'User profile not found. Please contact support.' };
+    return { error: 'User profile not found after verification. Please contact support.' };
   }
 
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -100,13 +94,13 @@ export async function resendOtp(email: string) {
         return { error: 'Email address is missing.', success: false };
     }
     
-    // This action is used to resend a code if the user didn't receive one
-    // during login or signup. It will send the appropriate type of code.
-    const { error } = await supabase.auth.resend({
-        type: 'signup', // Use 'signup' type which covers both new user and generic OTP resends
-        email: email,
+    // This action re-sends the OTP using the same mechanism as the login page.
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      },
     });
-
 
     if (error) {
         console.error('Resend OTP error:', error);

@@ -29,23 +29,21 @@ export async function loginWithPasswordAndOtp(
   try {
     const profile = await db.getProfileByEmail(email);
 
-    // Check if user is locked out
     if (profile && profile.failedLoginAttempts && profile.failedLoginAttempts >= MAX_ATTEMPTS) {
       if (profile.lastFailedLoginAt && differenceInHours(new Date(), new Date(profile.lastFailedLoginAt)) < LOCKOUT_HOURS) {
         return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
       } else {
-        // If lockout period has passed, reset attempts
         await db.updateProfile(profile.id, { failedLoginAttempts: 0, lastFailedLoginAt: null });
       }
     }
 
-    // Step 1: Sign in with password.
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    // Step 1: Verify the password. This does NOT log the user in but confirms the credential is valid.
+    const { error: passwordError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (signInError) {
+    if (passwordError) {
       if (profile) {
         const newAttemptCount = (profile.failedLoginAttempts || 0) + 1;
         await db.updateProfile(profile.id, {
@@ -56,19 +54,21 @@ export async function loginWithPasswordAndOtp(
            return `Too many failed attempts. Your account is locked for ${LOCKOUT_HOURS} hour.`;
         }
       }
-      return signInError.message || 'Invalid login credentials. Please try again.';
+      return passwordError.message || 'Invalid login credentials. Please try again.';
     }
-    
-    // Step 2: If password is correct, explicitly trigger the OTP email send.
-    // This is the crucial step to ensure the OTP email is dispatched for MFA.
-    const { error: resendError } = await supabase.auth.resend({
-      type: 'signup', // 'signup' type works for both signup and MFA OTPs
-      email: email,
+
+    // Step 2: If password is correct, trigger the OTP email send.
+    // This starts the passwordless flow that the verification page will complete.
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false, // Don't create a new user if they don't exist
+      }
     });
 
-    if (resendError) {
-        console.error('OTP trigger error:', resendError);
-        return 'Could not send verification code. Please try again.';
+    if (otpError) {
+      console.error('OTP trigger error:', otpError);
+      return 'Could not send verification code. Please try again.';
     }
 
     // Reset failed attempts on successful password verification
