@@ -2,36 +2,45 @@
 'use client';
 
 import * as React from 'react';
-import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, Legend } from 'recharts';
-import { useVisitsLast7Days } from '@/hooks/use-visits-last-7-days';
+import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 import { useTheme } from 'next-themes';
 import { themes } from '@/themes';
+import { getAiSymptomAnalysis } from '@/app/(app)/dashboard/actions';
+import { Skeleton } from '../ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Loader2, RefreshCw, Terminal } from 'lucide-react';
+import { Button } from '../ui/button';
 
-const COLORS = ['#3F51B5', '#FF9800', '#4CAF50', '#F44336', '#9C27B0'];
+const COLORS = ['#3F51B5', '#FF9800', '#4CAF50', '#F44336', '#9C27B0', '#00BCD4', '#FFC107'];
+
+type SymptomData = {
+  symptom: string;
+  count: number;
+};
 
 const RADIAN = Math.PI / 180;
 
 // A custom label with lines pointing from the chart to the label
 const renderCustomizedLabel = (props: any) => {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
-  const radius = outerRadius + 15; // Position label outside the pie
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, name, fill } = props;
+  const radius = outerRadius + 25;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
   const sin = Math.sin(-RADIAN * midAngle);
   const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 5) * cos;
-  const sy = cy + (outerRadius + 5) * sin;
-  const mx = cx + (outerRadius + 10) * cos;
-  const my = cy + (outerRadius + 10) * sin;
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 20) * cos;
+  const my = cy + (outerRadius + 20) * sin;
   const ex = mx + (cos >= 0 ? 1 : -1) * 12;
   const ey = my;
   const textAnchor = cos >= 0 ? 'start' : 'end';
 
   return (
     <g>
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={props.fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={props.fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 6} y={ey} textAnchor={textAnchor} fill={props.fill} fontSize={12}>
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 6} y={ey} textAnchor={textAnchor} fill={fill} fontSize={12}>
         {`${name} (${(percent * 100).toFixed(0)}%)`}
       </text>
     </g>
@@ -40,31 +49,73 @@ const renderCustomizedLabel = (props: any) => {
 
 
 export function SymptomDistributionChart() {
-  const { symptomCounts } = useVisitsLast7Days();
+  const [data, setData] = React.useState<SymptomData[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const { theme: mode } = useTheme();
   const theme = themes.find((t) => t.name === (mode === 'dark' ? 'dark' : 'light'));
 
-  const data = React.useMemo(() => {
-    return Object.entries(symptomCounts)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5); // Take top 5
-  }, [symptomCounts]);
+  const analyzeSymptoms = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await getAiSymptomAnalysis();
+      if (result.success) {
+        // Sort by count descending and take top 5
+        const sortedData = result.symptomsSummary.sort((a, b) => b.count - a.count).slice(0, 5);
+        setData(sortedData);
+      } else {
+        setError(result.error || "An unexpected error occurred.");
+      }
+    } catch (e) {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    analyzeSymptoms();
+  }, [analyzeSymptoms]);
+
+  if (isLoading) {
+    return <Skeleton className="h-80 w-full" />;
+  }
+  
+  if (error) {
+    return (
+        <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>AI Analysis Failed</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+        </Alert>
+    )
+  }
 
   if (!theme) return null;
   
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80 text-muted-foreground">
-        No symptom data available.
+      <div className="flex items-center justify-center h-80 text-muted-foreground text-center flex-col gap-4">
+        <p>No symptom data available for the last 30 days.</p>
+        <Button variant="secondary" onClick={analyzeSymptoms} disabled={isLoading}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Check Again
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="h-80 w-full">
+    <div className="h-80 w-full relative">
+       <div className="absolute top-0 right-0 z-10">
+        <Button variant="ghost" size="sm" onClick={analyzeSymptoms} disabled={isLoading}>
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            <span className="ml-2 hidden sm:inline">Regenerate</span>
+        </Button>
+      </div>
       <ResponsiveContainer>
-        <PieChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
+        <PieChart margin={{ top: 20, right: 40, left: 40, bottom: 20 }}>
           <Tooltip
             cursor={{fill: 'transparent'}}
             contentStyle={{
@@ -81,8 +132,8 @@ export function SymptomDistributionChart() {
             label={renderCustomizedLabel}
             outerRadius={80}
             fill="#8884d8"
-            dataKey="value"
-            nameKey="name"
+            dataKey="count"
+            nameKey="symptom"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -90,6 +141,9 @@ export function SymptomDistributionChart() {
           </Pie>
         </PieChart>
       </ResponsiveContainer>
+      <p className="text-xs text-muted-foreground text-center absolute bottom-0 w-full">
+        Generated by AI analysis from clinic logs (last 30 days).
+      </p>
     </div>
   );
 }

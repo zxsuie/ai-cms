@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { logVisitSchema } from '@/lib/types';
 import { generateExcuseSlip } from '@/ai/flows/ai-excuse-slip-generator';
 import { format } from 'date-fns';
+import { analyzeSymptoms } from '@/ai/flows/ai-symptom-analyzer';
 
 const SuggestionSchema = z.object({
   symptoms: z.string().min(10, "Please enter at least 10 characters of symptoms."),
@@ -137,5 +138,24 @@ export async function updateExcuseLetterAction(visitId: string, newText: string)
   } catch (error) {
     console.error('Failed to update excuse letter:', error);
     return { success: false, message: 'Failed to update excuse letter.' };
+  }
+}
+
+export async function getAiSymptomAnalysis() {
+  try {
+    const visits = await db.getVisitsLast30Days();
+    const appointments = await db.getAppointmentsLast30Days();
+
+    const symptomTexts = [
+      ...visits.map(v => v.symptoms),
+      ...visits.map(v => v.reason),
+      ...appointments.map(a => a.reason),
+    ].filter(Boolean); // Filter out any empty strings
+
+    const result = await analyzeSymptoms({symptomTexts});
+    return { success: true, ...result };
+  } catch (error) {
+    console.error("AI symptom analysis failed:", error);
+    return { success: false, error: "Failed to analyze symptoms with AI." };
   }
 }

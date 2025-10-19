@@ -107,6 +107,19 @@ export const db = {
     }
     return toCamelCase(data) as StudentVisit[];
   },
+   getVisitsLast30Days: async (): Promise<StudentVisit[]> => {
+    const thirtyDaysAgo = formatISO(subDays(new Date(), 30));
+    const { data, error } = await supabase
+      .from('visits')
+      .select('symptoms, reason')
+      .gte('timestamp', thirtyDaysAgo);
+
+    if (error) {
+      console.error('Error fetching visits from last 30 days:', error);
+      return [];
+    }
+    return toCamelCase(data) as StudentVisit[];
+  },
   
   addVisit: async (visitData: StudentVisitInsert): Promise<StudentVisit> => {
     const {data, error} = await supabase.from('visits').insert(toSnakeCase(visitData)).select().single();
@@ -227,6 +240,20 @@ export const db = {
 
     const {data, error} = await query;
     if (error) throw error;
+    return toCamelCase(data) as Appointment[];
+  },
+  
+  getAppointmentsLast30Days: async (): Promise<Appointment[]> => {
+    const thirtyDaysAgo = formatISO(subDays(new Date(), 30));
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('reason')
+      .gte('appointment_date', thirtyDaysAgo);
+
+    if (error) {
+      console.error('Error fetching appointments from last 30 days:', error);
+      return [];
+    }
     return toCamelCase(data) as Appointment[];
   },
 
