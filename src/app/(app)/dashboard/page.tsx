@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatCards } from '@/components/dashboard/stat-cards';
 import { VisitTrendsChart } from '@/components/dashboard/visit-trends-chart';
 import { UpcomingAppointments } from '@/components/appointments/upcoming-appointments';
-import { SymptomDistributionChart } from '@/components/dashboard/symptom-distribution-chart';
+import { PatientsOverviewChart } from '@/components/dashboard/patients-overview-chart';
 import { VisitsDataTable } from '@/components/dashboard/visits-data-table';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 
@@ -42,12 +42,12 @@ export default function DashboardPage() {
         <div className="lg:col-span-1">
              <Card>
                 <CardHeader>
-                    <CardTitle>Common Symptoms</CardTitle>
-                    <CardDescription>Distribution of symptoms from recent visits.</CardDescription>
+                    <CardTitle>Patients Overview by Role</CardTitle>
+                    <CardDescription>Distribution of clinic patients by role.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Suspense fallback={<Skeleton className="h-80 w-full" />}>
-                        <SymptomDistributionChart />
+                        <PatientsOverviewChart />
                     </Suspense>
                 </CardContent>
             </Card>

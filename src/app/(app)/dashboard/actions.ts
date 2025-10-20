@@ -173,3 +173,23 @@ export async function getAiSymptomAnalysis() {
     return { success: false, error: "Failed to analyze symptoms with AI." };
   }
 }
+
+export async function getPatientOverview() {
+  try {
+    const visits = await db.getVisits();
+    const overview = visits.reduce((acc, visit) => {
+        acc[visit.role] = (acc[visit.role] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const data = [
+      { name: 'Students', value: overview.student || 0, fill: '#4B7BEC' },
+      { name: 'Employees', value: overview.employee || 0, fill: '#3CB371' },
+      { name: 'Staff', value: overview.staff || 0, fill: '#FFA500' },
+    ];
+    return { success: true, data };
+  } catch(error) {
+    console.error("Patient overview failed:", error);
+    return { success: false, error: "Failed to fetch patient overview data." };
+  }
+}

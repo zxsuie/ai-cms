@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTheme } from 'next-themes';
 import { getPatientOverview } from '@/app/(app)/dashboard/actions';
 import { Skeleton } from '../ui/skeleton';
@@ -16,7 +16,25 @@ type OverviewData = {
   fill: string;
 };
 
-export function SymptomDistributionChart() {
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
+    const percentage = ((payload[0].value / (data.reduce((acc,d) => acc+d.value,0))) * 100).toFixed(1)
+    
+    return (
+      <div className="p-2 bg-background border rounded-md shadow-lg text-sm">
+        <p className="font-bold">{`${label}`}</p>
+        <p>{`Visits: ${payload[0].value}`}</p>
+        <p>{`Share: ${percentage}%`}</p>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+
+export function PatientsOverviewChart() {
   const [data, setData] = React.useState<OverviewData[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -60,10 +78,12 @@ export function SymptomDistributionChart() {
 
   if (!theme) return null;
 
-  if (data.length === 0) {
+  const chartData = data.filter(d => d.value > 0);
+
+  if (chartData.length === 0) {
     return (
       <div className="flex items-center justify-center h-80 text-muted-foreground text-center">
-        <p>No patient data available.</p>
+        <p>No patient data available to display.</p>
       </div>
     );
   }
@@ -72,7 +92,7 @@ export function SymptomDistributionChart() {
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
+          data={chartData}
           layout="vertical"
           margin={{
             top: 5,
@@ -81,10 +101,10 @@ export function SymptomDistributionChart() {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme.cssVars.light["border"]} />
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={`hsl(${theme.cssVars.light.border})`} />
           <XAxis 
             type="number" 
-            stroke={theme.cssVars.light["muted-foreground"]}
+            stroke={`hsl(${theme.cssVars.light["muted-foreground"]})`}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -93,21 +113,17 @@ export function SymptomDistributionChart() {
           <YAxis 
             type="category" 
             dataKey="name" 
-            stroke={theme.cssVars.light["muted-foreground"]}
+            stroke={`hsl(${theme.cssVars.light["muted-foreground"]})`}
             fontSize={12}
             tickLine={false}
             axisLine={false}
+            width={70}
           />
           <Tooltip 
-            cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }}
-            contentStyle={{
-                backgroundColor: `hsl(${theme.cssVars.light.background})`,
-                borderColor: `hsl(${theme.cssVars.light.border})`,
-                fontSize: '12px'
-            }}
-             formatter={(value, name, props) => [`${value} visits`, props.payload.name]}
+            cursor={{ fill: 'hsl(var(--accent))' }}
+            content={<CustomTooltip />}
           />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30} />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={25} />
         </BarChart>
       </ResponsiveContainer>
     </div>
