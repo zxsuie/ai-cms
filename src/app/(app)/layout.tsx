@@ -6,7 +6,7 @@ import { InactivityLogoutProvider } from '@/components/auth/inactivity-logout-pr
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <InactivityLogoutProvider>
         <MainSidebar />
         <SidebarInset>
@@ -21,3 +21,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    

@@ -10,6 +10,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, ShieldCheck, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -28,11 +29,10 @@ const allMenuItems = [
   { href: '/inventory', label: 'Inventory', icon: Boxes, roles: ['admin', 'super_admin'] },
   { href: '/appointments', label: 'Appointments', icon: CalendarDays, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
   { href: '/reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'super_admin'] },
-  { href: '/logs', label: 'Logs', icon: ScrollText, roles: ['super_admin'] },
 ];
 
 const superAdminItems = [
-    { href: '/security', label: 'Security', icon: ShieldCheck, roles: ['super_admin'] },
+    { href: '/logs', label: 'Logs', icon: ScrollText, roles: ['super_admin'] },
 ]
 
 export function MainSidebar() {
@@ -75,9 +75,7 @@ export function MainSidebar() {
   const userRole = user?.role || '';
   const menuItems = allMenuItems.filter(item => {
     if (!item.roles.includes(userRole)) return false;
-    // Special handling for appointments page
     if (item.href === '/appointments') {
-        // All roles see the "Appointments" link
         return true;
     }
     return true;
@@ -87,18 +85,18 @@ export function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2 p-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary">
+        <div className="flex items-center gap-2 p-2 group-data-[state=expanded]:p-4 group-data-[state=expanded]:pl-2 transition-all justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary shrink-0">
             <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m-4 60a12 12 0 1 1-12 12a12 12 0 0 1 12-12m60 92h-52v52a12 12 0 0 1-24 0v-52H56a12 12 0 0 1 0-24h52V92a12 12 0 0 1 24 0v52h52a12 12 0 0 1 0 24"/>
           </svg>
-          <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+          <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground group-data-[state=collapsed]:hidden">
             iClinicMate
           </h2>
         </div>
       </SidebarHeader>
-      <SidebarMenu className="flex-1 p-2">
+      <SidebarMenu className="flex-1 p-2 group-data-[state=collapsed]:p-1.5 transition-all">
         {menuItems.map((item) => (
-          <SidebarMenuItem key={item.href}>
+          <SidebarMenuItem key={item.href} className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
             <SidebarMenuButton
               asChild
               isActive={pathname === item.href}
@@ -113,9 +111,8 @@ export function MainSidebar() {
         ))}
          {isSuperAdmin && (
              <SidebarGroup className="mt-4 pt-4 border-t border-sidebar-border">
-                <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
                  {superAdminItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuItem key={item.href} className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
                         <SidebarMenuButton
                         asChild
                         isActive={pathname === item.href}
@@ -134,14 +131,14 @@ export function MainSidebar() {
       <SidebarFooter className="border-t border-sidebar-border p-2">
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start h-auto p-2">
-                    <div className="flex items-center justify-start gap-3 w-full">
+                <Button variant="ghost" className="w-full justify-start h-auto p-2 group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:h-10">
+                    <div className="flex items-center justify-start gap-3 w-full group-data-[state=collapsed]:justify-center">
                         <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.fullName || 'User'} />
                             <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className="group-data-[collapsible=icon]:hidden text-left">
-                            <p className="font-semibold text-sm text-sidebar-foreground">{user?.fullName || user?.email}</p>
+                        <div className="group-data-[state=collapsed]:hidden text-left">
+                            <p className="font-semibold text-sm text-sidebar-foreground truncate">{user?.fullName || user?.email}</p>
                             <p className="text-xs text-sidebar-foreground/70 capitalize">{user?.role?.replace('_', ' ')}</p>
                         </div>
                     </div>
@@ -160,7 +157,12 @@ export function MainSidebar() {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+         <div className="flex justify-center py-2">
+            <SidebarTrigger />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
 }
+
+    
