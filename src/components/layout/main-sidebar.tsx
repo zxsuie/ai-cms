@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarGroup,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -35,6 +36,7 @@ export function MainSidebar() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading, isSuperAdmin } = useUser();
+  const { isHovering } = useSidebar();
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -72,7 +74,10 @@ export function MainSidebar() {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary shrink-0">
             <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m-4 60a12 12 0 1 1-12 12a12 12 0 0 1 12-12m60 92h-52v52a12 12 0 0 1-24 0v-52H56a12 12 0 0 1 0-24h52V92a12 12 0 0 1 24 0v52h52a12 12 0 0 1 0 24"/>
           </svg>
-          <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-2 whitespace-nowrap">
+          <h2 className={cn(
+              "text-2xl font-headline font-semibold text-sidebar-foreground transition-opacity duration-300 ml-2 whitespace-nowrap",
+              isHovering ? "opacity-100" : "opacity-0"
+          )}>
             iClinicMate
           </h2>
         </div>
@@ -87,7 +92,10 @@ export function MainSidebar() {
             >
               <Link href={item.href}>
                 <item.icon className="opacity-70 group-hover:opacity-100" />
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
+                <span className={cn(
+                    "transition-opacity duration-300 whitespace-nowrap",
+                    isHovering ? "opacity-100" : "opacity-0"
+                )}>{item.label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -103,7 +111,10 @@ export function MainSidebar() {
                         >
                             <Link href={item.href}>
                                 <item.icon className="opacity-70 group-hover:opacity-100" />
-                                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
+                                <span className={cn(
+                                    "transition-opacity duration-300 whitespace-nowrap",
+                                    isHovering ? "opacity-100" : "opacity-0"
+                                )}>{item.label}</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -118,7 +129,10 @@ export function MainSidebar() {
                 tooltip={{ children: 'Log Out', side: 'right' }}
             >
                 <LogOut className="opacity-70 group-hover:opacity-100" />
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Log Out</span>
+                 <span className={cn(
+                    "transition-opacity duration-300 whitespace-nowrap",
+                    isHovering ? "opacity-100" : "opacity-0"
+                )}>Log Out</span>
             </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarFooter>

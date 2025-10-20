@@ -68,8 +68,8 @@ const SidebarProvider = React.forwardRef<
     )
 
     return (
-      <SidebarContext.Provider value={contextValue}>
-        <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={0}>
+        <SidebarContext.Provider value={contextValue}>
           <div
             style={
               {
@@ -77,7 +77,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group flex min-h-svh w-full",
+              "flex min-h-svh w-full",
               className
             )}
             ref={ref}
@@ -85,8 +85,8 @@ const SidebarProvider = React.forwardRef<
           >
             {children}
           </div>
-        </TooltipProvider>
-      </SidebarContext.Provider>
+        </SidebarContext.Provider>
+      </TooltipProvider>
     )
   }
 )
@@ -104,7 +104,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, open, setOpen, setIsHovering } = useSidebar()
+    const { isMobile, open, setOpen, setIsHovering, isHovering } = useSidebar()
 
     if (isMobile) {
       return (
@@ -126,8 +126,8 @@ const Sidebar = React.forwardRef<
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         className={cn(
-          "group hidden h-svh bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out md:flex md:flex-col",
-          "hover:w-[240px] w-[80px]",
+          "group hidden h-svh bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out md:fixed md:left-0 md:top-0 md:z-20 md:flex md:flex-col",
+          isHovering ? "w-[240px]" : "w-[80px]",
           className
         )}
         {...props}
@@ -144,12 +144,14 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { isHovering } = useSidebar();
   return (
     <main
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-300 ease-in-out",
-        "md:ml-[80px] group-hover:ml-[240px]",
+        "md:ml-[80px]",
+        isHovering && "md:ml-[240px]",
         className
       )}
       {...props}
@@ -253,7 +255,7 @@ const SidebarMenuButton = React.forwardRef<
           className={cn(
             "flex w-full items-center gap-3 overflow-hidden rounded-xl p-2 text-left text-sm outline-none ring-sidebar-ring transition-colors duration-300 ease-in-out",
             "text-white/60 hover:text-white hover:bg-sidebar-accent",
-            "justify-center group-hover:justify-start group-hover:pl-4",
+            isHovering ? "justify-start pl-4" : "justify-center",
             "[&>svg]:size-6 [&>svg]:shrink-0",
             className
           )}
