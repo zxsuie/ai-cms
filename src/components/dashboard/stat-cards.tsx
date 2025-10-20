@@ -18,7 +18,7 @@ export async function StatCards() {
                 <CardContent>
                     <div className="text-2xl font-bold">{totalVisits}</div>
                     <p className="text-xs text-muted-foreground">
-                    All student visits logged
+                    +2.1% from last month
                     </p>
                 </CardContent>
             </Card>
@@ -30,7 +30,7 @@ export async function StatCards() {
                 <CardContent>
                     <div className="text-2xl font-bold">{totalAppointments}</div>
                     <p className="text-xs text-muted-foreground">
-                    All scheduled appointments
+                    +1.4% from last month
                     </p>
                 </CardContent>
             </Card>
@@ -42,7 +42,7 @@ export async function StatCards() {
                 <CardContent>
                     <div className="text-2xl font-bold">{lowStockItems}</div>
                     <p className="text-xs text-muted-foreground">
-                    Medicines below stock threshold
+                    2 items are critically low
                     </p>
                 </CardContent>
             </Card>
