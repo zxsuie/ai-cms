@@ -26,7 +26,7 @@ import { Calendar } from '../ui/calendar';
 type VisitFormValues = z.infer<typeof logVisitSchema>;
 
 const rolePlaceholders = {
-    student: { year: 'e.g. 1st Year', section: 'e.g. BSCS-2A', yearLabel: 'Year', sectionLabel: 'Section' },
+    student: { year: 'e.g. 1st Year', section: 'e.g. BSCS-2A', yearLabel: 'Course', sectionLabel: 'Section' },
     employee: { year: 'e.g. IT Department', section: 'e.g. Developer', yearLabel: 'Department', sectionLabel: 'Job Title' },
     staff: { year: 'e.g. Maintenance', section: 'e.g. Electrician', yearLabel: 'Department', sectionLabel: 'Job Title' },
 };
@@ -59,6 +59,8 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
 
   const symptomsValue = form.watch('symptoms');
   const roleValue = form.watch('role');
+  const studentYearValue = form.watch('studentYear');
+  const studentSectionValue = form.watch('studentSection');
 
   // Set real-time clock for Manila time
   useEffect(() => {
@@ -80,7 +82,12 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
     const handler = setTimeout(() => {
       setSuggestionLoading(true);
       startTransition(async () => {
-        const result = await getAiSymptomSuggestion({ symptoms: symptomsValue, role: roleValue });
+        const details = `${studentYearValue} - ${studentSectionValue}`;
+        const result = await getAiSymptomSuggestion({ 
+            symptoms: symptomsValue, 
+            role: roleValue,
+            details: details,
+        });
         if (result.suggestions) {
           setAiSuggestion(result.suggestions);
         } else {
@@ -93,7 +100,7 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
     return () => {
       clearTimeout(handler);
     };
-  }, [symptomsValue, roleValue]);
+  }, [symptomsValue, roleValue, studentYearValue, studentSectionValue]);
 
   function onSubmit(data: VisitFormValues) {
     if (!user) {

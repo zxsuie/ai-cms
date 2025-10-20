@@ -13,6 +13,7 @@ import { analyzeSymptoms } from '@/ai/flows/ai-symptom-analyzer';
 const SuggestionSchema = z.object({
   symptoms: z.string().min(10, "Please enter at least 10 characters of symptoms."),
   role: z.enum(['student', 'employee', 'staff']),
+  details: z.string().optional(),
 });
 
 export async function getAiSymptomSuggestion(input: z.infer<typeof SuggestionSchema>) {
@@ -24,7 +25,8 @@ export async function getAiSymptomSuggestion(input: z.infer<typeof SuggestionSch
   try {
     const result = await suggestDiagnosis({ 
         symptoms: parsed.data.symptoms,
-        role: parsed.data.role 
+        role: parsed.data.role,
+        studentDetails: parsed.data.details,
     });
     return { suggestions: result.suggestions };
   } catch (error) {
@@ -52,7 +54,11 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>, user
     let excuseLetterText = 'Could not generate excuse slip.';
 
     try {
-        const aiResult = await suggestDiagnosis({ symptoms: data.symptoms, role: data.role });
+        const aiResult = await suggestDiagnosis({ 
+            symptoms: data.symptoms, 
+            role: data.role,
+            studentDetails: `${data.studentYear} - ${data.studentSection}`
+        });
         aiSuggestion = aiResult.suggestions || 'No suggestion available.';
     } catch (e) {
         console.error("AI suggestion failed:", e);

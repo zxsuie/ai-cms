@@ -17,7 +17,7 @@ const SuggestDiagnosisInputSchema = z.object({
     .string()
     .describe('The symptoms observed in the visitor.'),
   role: z.enum(['student', 'employee', 'staff']).describe("The role of the visitor (student, employee, or staff)."),
-  studentDetails: z.string().optional().describe('Additional details about the student, such as age or medical history.'),
+  studentDetails: z.string().optional().describe('Additional details about the visitor, such as age, course, job title, or medical history.'),
 });
 export type SuggestDiagnosisInput = z.infer<typeof SuggestDiagnosisInputSchema>;
 
@@ -34,11 +34,11 @@ const prompt = ai.definePrompt({
   name: 'suggestDiagnosisPrompt',
   input: {schema: SuggestDiagnosisInputSchema},
   output: {schema: SuggestDiagnosisOutputSchema},
-  prompt: `You are an AI assistant for school nurses. Based on the symptoms and role provided, suggest possible diagnoses or next steps for the nurse to consider. Provide a brief summary of your reasoning. The visitor's role is important context (e.g., a student might have exam stress, an employee might have work-related strain).
+  prompt: `You are an AI assistant for a school nurse. Based on the symptoms, role, and other details provided, suggest possible diagnoses or next steps for the nurse to consider. Provide a brief, professional summary of your reasoning. The visitor's role and details are important context (e.g., a student might have exam stress, an employee in a specific department might have work-related strain).
 
 Visitor Role: {{{role}}}
+Visitor Details: {{{studentDetails}}}
 Symptoms: {{{symptoms}}}
-Student Details: {{{studentDetails}}}
 
 Suggestions:`,
 });
