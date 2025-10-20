@@ -7,14 +7,12 @@ import { VisitTrendsChart } from '@/components/dashboard/visit-trends-chart';
 import { UpcomingAppointments } from '@/components/appointments/upcoming-appointments';
 import { SymptomDistributionChart } from '@/components/dashboard/symptom-distribution-chart';
 import { VisitsDataTable } from '@/components/dashboard/visits-data-table';
-import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <DashboardGreeting />
-      </div>
+      <DashboardHeader />
       
       {/* Stat Cards */}
       <Suspense fallback={
