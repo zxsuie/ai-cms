@@ -12,16 +12,20 @@ import { analyzeSymptoms } from '@/ai/flows/ai-symptom-analyzer';
 
 const SuggestionSchema = z.object({
   symptoms: z.string().min(10, "Please enter at least 10 characters of symptoms."),
+  role: z.enum(['student', 'employee', 'staff']),
 });
 
-export async function getAiSymptomSuggestion(input: { symptoms: string }) {
+export async function getAiSymptomSuggestion(input: z.infer<typeof SuggestionSchema>) {
   const parsed = SuggestionSchema.safeParse(input);
   if (!parsed.success) {
     return { error: 'Invalid input for AI suggestion.' };
   }
   
   try {
-    const result = await suggestDiagnosis({ symptoms: parsed.data.symptoms });
+    const result = await suggestDiagnosis({ 
+        symptoms: parsed.data.symptoms,
+        role: parsed.data.role 
+    });
     return { suggestions: result.suggestions };
   } catch (error) {
     return { error: 'Failed to get AI suggestion.' };
@@ -48,7 +52,7 @@ export async function logStudentVisit(data: z.infer<typeof logVisitSchema>, user
     let excuseLetterText = 'Could not generate excuse slip.';
 
     try {
-        const aiResult = await suggestDiagnosis({ symptoms: data.symptoms });
+        const aiResult = await suggestDiagnosis({ symptoms: data.symptoms, role: data.role });
         aiSuggestion = aiResult.suggestions || 'No suggestion available.';
     } catch (e) {
         console.error("AI suggestion failed:", e);
@@ -151,6 +155,10 @@ export async function getAiSymptomAnalysis() {
       ...visits.map(v => v.reason),
       ...appointments.map(a => a.reason),
     ].filter(Boolean); // Filter out any empty strings
+
+    if (symptomTexts.length === 0) {
+        return { success: true, symptomsSummary: [] };
+    }
 
     const result = await analyzeSymptoms({symptomTexts});
     return { success: true, ...result };

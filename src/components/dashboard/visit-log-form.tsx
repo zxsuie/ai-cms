@@ -80,7 +80,7 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
     const handler = setTimeout(() => {
       setSuggestionLoading(true);
       startTransition(async () => {
-        const result = await getAiSymptomSuggestion({ symptoms: symptomsValue });
+        const result = await getAiSymptomSuggestion({ symptoms: symptomsValue, role: roleValue });
         if (result.suggestions) {
           setAiSuggestion(result.suggestions);
         } else {
@@ -93,7 +93,7 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
     return () => {
       clearTimeout(handler);
     };
-  }, [symptomsValue]);
+  }, [symptomsValue, roleValue]);
 
   function onSubmit(data: VisitFormValues) {
     if (!user) {
