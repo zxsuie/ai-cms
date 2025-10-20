@@ -1,9 +1,11 @@
 
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import type {StudentVisit, Medicine, Appointment, RefillRequest, ActivityLog, MedicineInsert, Profile} from '@/lib/types';
-import { subDays, formatISO } from 'date-fns';
+import { subDays, formatISO, parse } from 'date-fns';
 import { logVisitSchema } from './types';
 import { z } from 'zod';
+import { format, formatInTimeZone, toDate } from 'date-fns-tz';
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -122,7 +124,20 @@ export const db = {
   },
   
   addVisit: async (visitData: StudentVisitInsert): Promise<StudentVisit> => {
-    const {data, error} = await supabase.from('visits').insert(toSnakeCase(visitData)).select().single();
+    const { visitDate, visitTime, ...rest } = visitData;
+
+    // Combine date and time, assuming visitTime is 'HH:mm:ss'
+    const dateString = format(visitDate, 'yyyy-MM-dd');
+    const fullDateTimeString = `${dateString}T${visitTime}`;
+
+    // Convert to a Date object, respecting the Manila timezone, then to ISO string
+    const timeZone = 'Asia/Manila';
+    const dateInUTC = toDate(fullDateTimeString, { timeZone });
+    const timestamp = formatInTimeZone(dateInUTC, timeZone, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+
+    const visitToInsert = { ...rest, timestamp };
+
+    const {data, error} = await supabase.from('visits').insert(toSnakeCase(visitToInsert)).select().single();
     if (error) throw error;
     return toCamelCase(data) as StudentVisit;
   },

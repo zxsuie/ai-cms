@@ -29,18 +29,24 @@ import { StudentVisit } from "@/lib/types"
 import { format } from "date-fns"
 import { ReleaseFormButton } from "./release-form-button"
 import { Skeleton } from "../ui/skeleton"
+import { Badge } from "../ui/badge"
 
 // Moved columns definition outside the component
 const columns: ColumnDef<StudentVisit>[] = [
     {
       accessorKey: "studentName",
-      header: "Student",
+      header: "Visitor Name",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.studentName}</div>
           <div className="text-xs text-muted-foreground">{row.original.studentYear} - {row.original.studentSection}</div>
         </div>
       ),
+    },
+    {
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => <Badge variant="secondary" className="capitalize">{row.original.role}</Badge>
     },
     {
       accessorKey: "timestamp",
@@ -98,7 +104,7 @@ export function VisitsDataTable() {
     <div className="space-y-4">
        <div className="flex items-center">
         <Input
-          placeholder="Search by student name..."
+          placeholder="Search by name..."
           value={(table.getColumn("studentName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("studentName")?.setFilterValue(event.target.value)

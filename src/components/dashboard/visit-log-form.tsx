@@ -5,6 +5,8 @@ import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { getAiSymptomSuggestion, logStudentVisit } from '@/app/(app)/dashboard/actions';
 import { logVisitSchema } from '@/lib/types';
 
@@ -14,13 +16,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useUser } from '@/hooks/use-user';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '../ui/calendar';
 
 type VisitFormValues = z.infer<typeof logVisitSchema>;
 
-const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+const rolePlaceholders = {
+    student: { year: 'e.g. 1st Year', section: 'e.g. BSCS-2A', yearLabel: 'Year', sectionLabel: 'Section' },
+    employee: { year: 'e.g. IT Department', section: 'e.g. Developer', yearLabel: 'Department', sectionLabel: 'Job Title' },
+    staff: { year: 'e.g. Maintenance', section: 'e.g. Electrician', yearLabel: 'Department', sectionLabel: 'Job Title' },
+};
 
 interface VisitLogFormProps {
   onSuccess?: () => void;
@@ -32,19 +41,35 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
   const [aiSuggestion, setAiSuggestion] = useState('');
   const { toast } = useToast();
   const { user } = useUser();
+  const [currentTime, setCurrentTime] = useState('');
 
   const form = useForm<VisitFormValues>({
     resolver: zodResolver(logVisitSchema),
     defaultValues: {
       studentName: '',
+      role: 'student',
       studentYear: '',
       studentSection: '',
       symptoms: '',
       reason: '',
+      visitDate: new Date(),
+      visitTime: '',
     },
   });
 
   const symptomsValue = form.watch('symptoms');
+  const roleValue = form.watch('role');
+
+  // Set real-time clock for Manila time
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const manilaTime = formatInTimeZone(new Date(), 'Asia/Manila', 'HH:mm:ss');
+      setCurrentTime(manilaTime);
+      form.setValue('visitTime', manilaTime);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [form]);
 
   useEffect(() => {
     if (symptomsValue.trim().length < 15) {
@@ -86,7 +111,16 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
           title: 'Success',
           description: result.message,
         });
-        form.reset();
+        form.reset({
+            studentName: '',
+            role: 'student',
+            studentYear: '',
+            studentSection: '',
+            symptoms: '',
+            reason: '',
+            visitDate: new Date(),
+            visitTime: currentTime,
+        });
         setAiSuggestion('');
         if (onSuccess) {
           onSuccess();
@@ -101,6 +135,8 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
     });
   }
 
+  const placeholders = rolePlaceholders[roleValue] || rolePlaceholders.student;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -109,7 +145,7 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
           name="studentName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Student Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="e.g. John Doe" {...field} />
               </FormControl>
@@ -117,25 +153,40 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
             </FormItem>
           )}
         />
+        
+        <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select visitor's role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+        />
+
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <FormField
             control={form.control}
             name="studentYear"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Year</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select year level" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {yearLevels.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>{placeholders.yearLabel}</FormLabel>
+                <FormControl>
+                  <Input placeholder={placeholders.year} {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -145,15 +196,63 @@ export function VisitLogForm({ onSuccess }: VisitLogFormProps) {
             name="studentSection"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Section</FormLabel>
+                <FormLabel>{placeholders.sectionLabel}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. BSCS-2A" {...field} />
+                  <Input placeholder={placeholders.section} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+                control={form.control}
+                name="visitDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date of Visit</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                          >
+                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            <FormField
+                control={form.control}
+                name="visitTime"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Time of Visit (PH Time)</FormLabel>
+                    <FormControl>
+                      <Input value={currentTime} readOnly disabled />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+        </div>
+
         <FormField
           control={form.control}
           name="reason"

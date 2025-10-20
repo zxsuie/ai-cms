@@ -3,10 +3,13 @@ import { z } from 'zod';
 
 export const logVisitSchema = z.object({
   studentName: z.string().min(1, 'Student name is required'),
-  studentYear: z.string().min(1, 'Year level is required'),
-  studentSection: z.string().min(1, 'Section is required'),
+  role: z.enum(['student', 'employee', 'staff'], { required_error: 'Role is required.' }),
+  studentYear: z.string().min(1, 'Course/Department is required'),
+  studentSection: z.string().min(1, 'Section/Job Title is required'),
   symptoms: z.string().min(1, 'Symptoms are required'),
   reason: z.string().min(1, 'Reason for visit is required'),
+  visitDate: z.date({ required_error: 'Please select a date.' }),
+  visitTime: z.string().min(1, 'Time is required'),
 });
 
 export const scheduleAppointmentSchema = z.object({
@@ -73,6 +76,7 @@ export type StudentVisit = {
   id: string; // UUID
   timestamp: string;
   studentName: string;
+  role: 'student' | 'employee' | 'staff';
   studentYear: string;
   studentSection: string;
   symptoms: string;
