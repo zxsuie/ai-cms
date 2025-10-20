@@ -60,8 +60,8 @@ export default function DashboardPage() {
          <div className="lg:col-span-2">
            <Card>
             <CardHeader>
-              <CardTitle>All Student Visits</CardTitle>
-              <CardDescription>A complete log of all student visits to the clinic.</CardDescription>
+              <CardTitle>All Clinic Visits</CardTitle>
+              <CardDescription>A complete log of all visits to the clinic by students, employees, and staff.</CardDescription>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<Skeleton className="h-96 w-full" />}>

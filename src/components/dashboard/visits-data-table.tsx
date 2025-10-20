@@ -30,23 +30,35 @@ import { format } from "date-fns"
 import { ReleaseFormButton } from "./release-form-button"
 import { Skeleton } from "../ui/skeleton"
 import { Badge } from "../ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
-// Moved columns definition outside the component
 const columns: ColumnDef<StudentVisit>[] = [
     {
       accessorKey: "studentName",
       header: "Visitor Name",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.studentName}</div>
-          <div className="text-xs text-muted-foreground">{row.original.studentYear} - {row.original.studentSection}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const visit = row.original;
+        const isStudent = visit.role === 'student';
+        return (
+            <div>
+              <div className="font-medium">{visit.studentName}</div>
+              <div className="text-xs text-muted-foreground">
+                {isStudent ? 
+                  `${visit.studentYear} - ${visit.studentSection}` :
+                  visit.studentSection // Job title for staff/employee
+                }
+              </div>
+            </div>
+        )
+      },
     },
     {
         accessorKey: "role",
         header: "Role",
-        cell: ({ row }) => <Badge variant="secondary" className="capitalize">{row.original.role}</Badge>
+        cell: ({ row }) => <Badge variant="secondary" className="capitalize">{row.original.role}</Badge>,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        }
     },
     {
       accessorKey: "timestamp",
@@ -90,7 +102,10 @@ export function VisitsDataTable() {
   if (loading) {
     return (
         <div className="space-y-4">
-            <Skeleton className="h-10 w-1/3" />
+            <div className="flex gap-4">
+                <Skeleton className="h-10 w-2/3" />
+                <Skeleton className="h-10 w-1/3" />
+            </div>
             <Skeleton className="h-48 w-full" />
             <div className="flex justify-between">
                 <Skeleton className="h-10 w-24" />
@@ -102,7 +117,7 @@ export function VisitsDataTable() {
 
   return (
     <div className="space-y-4">
-       <div className="flex items-center">
+       <div className="flex items-center gap-4">
         <Input
           placeholder="Search by name..."
           value={(table.getColumn("studentName")?.getFilterValue() as string) ?? ""}
@@ -111,6 +126,27 @@ export function VisitsDataTable() {
           }
           className="max-w-sm"
         />
+        <Select
+            value={(table.getColumn('role')?.getFilterValue() as string[])?.join(',') ?? 'all'}
+            onValueChange={(value) => {
+                 const currentFilter = table.getColumn('role')?.getFilterValue() as string[] | undefined;
+                 if (value === 'all') {
+                    table.getColumn('role')?.setFilterValue(undefined);
+                 } else {
+                    table.getColumn('role')?.setFilterValue([value]);
+                 }
+            }}
+        >
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by role" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
+            </SelectContent>
+        </Select>
       </div>
       <div className="rounded-md border">
         <Table>
