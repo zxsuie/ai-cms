@@ -122,6 +122,11 @@ export function ScheduleAppointmentForm() {
         });
         return;
     }
+    // Ensure userId is set for logged-in users before submitting
+    if (user && !loading) {
+        data.userId = user.id;
+    }
+
     startTransition(async () => {
       const result = await scheduleAppointment(data);
       if (result.success) {
@@ -131,7 +136,15 @@ export function ScheduleAppointmentForm() {
         });
         // Reset form based on role
         if(isAdmin) {
-          form.reset();
+          form.reset({
+              userId: '',
+              studentName: '',
+              studentYear: '',
+              studentSection: '',
+              reason: '',
+              date: undefined,
+              time: ''
+          });
         } else {
             form.reset({
                 ...form.getValues(), // Keep pre-filled values

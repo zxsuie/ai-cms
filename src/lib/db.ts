@@ -274,12 +274,15 @@ export const db = {
 
   addAppointment: async (apptData: AppointmentInsert): Promise<Appointment> => {
     const snakeCaseData = toSnakeCase(apptData);
-    // Ensure userId is correctly formatted if it exists
-    if (snakeCaseData.user_id === '') {
-        delete snakeCaseData.user_id;
+    // Ensure userId is correctly formatted if it exists. If it's an empty string, it should be null.
+    if (!snakeCaseData.user_id || snakeCaseData.user_id.trim() === '') {
+        snakeCaseData.user_id = null;
     }
     const {data, error} = await supabase.from('appointments').insert(snakeCaseData).select().single();
-    if (error) throw error;
+    if (error) {
+      console.error('Error adding appointment:', error);
+      throw error;
+    };
     return toCamelCase(data) as Appointment;
   },
 
