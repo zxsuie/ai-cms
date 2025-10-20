@@ -9,8 +9,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -19,9 +17,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '../ui/skeleton';
-import { LogVisitButton } from '../dashboard/log-visit-button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 
 const allMenuItems = [
@@ -39,7 +37,7 @@ export function MainSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading, isSuperAdmin, isAdmin } = useUser();
+  const { user, loading, isSuperAdmin } = useUser();
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -51,60 +49,48 @@ export function MainSidebar() {
   if (loading) {
     return (
       <Sidebar>
-          <SidebarHeader className="border-b border-sidebar-border p-4">
-              <Skeleton className="w-32 h-8" />
+          <SidebarHeader>
+              <Skeleton className="w-10 h-10" />
           </SidebarHeader>
           <SidebarMenu className="flex-1 p-2">
-            {allMenuItems.map((item) => (
-                <Skeleton key={item.href} className="w-full h-10 mb-2" />
+            {allMenuItems.slice(0, 4).map((item) => (
+                <Skeleton key={item.href} className="w-10 h-10 mb-2" />
             ))}
           </SidebarMenu>
-          <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
-            <div className="flex items-center gap-3 p-2">
-                <Skeleton className="h-9 w-9 rounded-full" />
-                <div className="group-data-[collapsible=icon]:hidden space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                </div>
-            </div>
+          <SidebarFooter>
+            <Skeleton className="h-10 w-10 rounded-full" />
           </SidebarFooter>
       </Sidebar>
     );
   }
 
   const userRole = user?.role || '';
-  const menuItems = allMenuItems.filter(item => {
-    if (!item.roles.includes(userRole)) return false;
-    if (item.href === '/appointments') {
-        return true;
-    }
-    return true;
-  });
+  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2 p-2 group-data-[state=expanded]:p-4 group-data-[state=expanded]:pl-2 transition-all justify-center">
+      <SidebarHeader>
+        <div className="flex items-center justify-center h-14">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary shrink-0">
             <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m-4 60a12 12 0 1 1-12 12a12 12 0 0 1 12-12m60 92h-52v52a12 12 0 0 1-24 0v-52H56a12 12 0 0 1 0-24h52V92a12 12 0 0 1 24 0v52h52a12 12 0 0 1 0 24"/>
           </svg>
-          <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground group-data-[state=collapsed]:hidden">
+          <h2 className="text-2xl font-headline font-semibold text-sidebar-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-2 whitespace-nowrap">
             iClinicMate
           </h2>
         </div>
       </SidebarHeader>
-      <SidebarMenu className="flex-1 p-2 group-data-[state=collapsed]:p-1.5 transition-all">
+      <SidebarMenu className="flex-1">
         {menuItems.map((item) => (
-          <SidebarMenuItem key={item.href} className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
+          <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
               asChild
-              isActive={pathname === item.href}
+              className={cn(pathname === item.href && "sidebar-active-item")}
               tooltip={{ children: item.label, side: 'right' }}
             >
               <Link href={item.href}>
-                <item.icon />
-                <span>{item.label}</span>
+                <item.icon className="opacity-70 group-hover:opacity-100" />
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -112,39 +98,39 @@ export function MainSidebar() {
          {isSuperAdmin && (
              <SidebarGroup className="mt-4 pt-4 border-t border-sidebar-border">
                  {superAdminItems.map((item) => (
-                    <SidebarMenuItem key={item.href} className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
+                    <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                        tooltip={{ children: item.label, side: 'right' }}
+                            asChild
+                            className={cn(pathname === item.href && "sidebar-active-item")}
+                            tooltip={{ children: item.label, side: 'right' }}
                         >
-                        <Link href={item.href}>
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </Link>
+                            <Link href={item.href}>
+                                <item.icon className="opacity-70 group-hover:opacity-100" />
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
+                            </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 ))}
             </SidebarGroup>
          )}
       </SidebarMenu>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter>
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start h-auto p-2 group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:h-10">
-                    <div className="flex items-center justify-start gap-3 w-full group-data-[state=collapsed]:justify-center">
-                        <Avatar className="h-9 w-9">
+                <Button variant="ghost" className="w-full justify-start h-auto p-2">
+                    <div className="flex items-center justify-center gap-3 w-full">
+                        <Avatar className="h-10 w-10">
                             <AvatarImage src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.fullName || 'User'} />
                             <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className="group-data-[state=collapsed]:hidden text-left">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-left whitespace-nowrap">
                             <p className="font-semibold text-sm text-sidebar-foreground truncate">{user?.fullName || user?.email}</p>
-                            <p className="text-xs text-sidebar-foreground/70 capitalize">{user?.role?.replace('_', ' ')}</p>
+                            <p className="text-xs text-sidebar-foreground/60 capitalize">{user?.role?.replace('_', ' ')}</p>
                         </div>
                     </div>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
+            <DropdownMenuContent className="w-56 mb-2 ml-4" side="top" align="start">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled>
@@ -157,9 +143,6 @@ export function MainSidebar() {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-         <div className="flex justify-center py-2">
-            <SidebarTrigger />
-        </div>
       </SidebarFooter>
     </Sidebar>
   );
