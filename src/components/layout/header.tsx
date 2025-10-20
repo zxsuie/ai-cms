@@ -1,10 +1,14 @@
 
 'use client';
 
-// This component is no longer used and can be safely removed.
-// The notification bell and user profile are now floating buttons
-// implemented in the main app layout.
+import { NotificationBell } from './notification-bell';
+import { UserProfileButton } from './user-profile-button';
 
 export function Header() {
-    return null;
+    return (
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+            <NotificationBell />
+            <UserProfileButton />
+        </header>
+    );
 }
