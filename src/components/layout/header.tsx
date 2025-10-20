@@ -1,31 +1,10 @@
 
 'use client';
-import { usePathname } from 'next/navigation';
-import { NotificationBell } from './notification-bell';
-import { LogVisitButton } from '../dashboard/log-visit-button';
+
+// This component is no longer used and can be safely removed.
+// The notification bell and user profile are now floating buttons
+// implemented in the main app layout.
 
 export function Header() {
-  const pathname = usePathname();
-  const pageTitles: Record<string, string> = {
-    '/dashboard': 'Dashboard',
-    '/inventory': 'Medicine Inventory',
-    '/reports': 'AI Reports',
-    '/appointments': 'Appointment Scheduling',
-    '/logs': 'Activity Logs',
-  };
-  const title = pageTitles[pathname] ?? 'iClinicMate';
-  
-  return (
-    <header className="flex h-16 items-center border-b bg-card px-4 shrink-0 sm:px-6">
-      <div className="flex-1">
-        {/* The sidebar trigger button used to be here */}
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="hidden sm:block w-40">
-           <LogVisitButton />
-        </div>
-        <NotificationBell />
-      </div>
-    </header>
-  );
+    return null;
 }

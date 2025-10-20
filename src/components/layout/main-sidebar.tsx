@@ -13,12 +13,9 @@ import {
 import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '../ui/skeleton';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 
 
@@ -115,34 +112,15 @@ export function MainSidebar() {
          )}
       </SidebarMenu>
       <SidebarFooter>
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start h-auto p-2">
-                    <div className="flex items-center justify-center gap-3 w-full">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.fullName || 'User'} />
-                            <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-left whitespace-nowrap">
-                            <p className="font-semibold text-sm text-sidebar-foreground truncate">{user?.fullName || user?.email}</p>
-                            <p className="text-xs text-sidebar-foreground/60 capitalize">{user?.role?.replace('_', ' ')}</p>
-                        </div>
-                    </div>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2 ml-4" side="top" align="start">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Edit Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log Out</span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <SidebarMenuItem>
+            <SidebarMenuButton 
+                onClick={handleLogout}
+                tooltip={{ children: 'Log Out', side: 'right' }}
+            >
+                <LogOut className="opacity-70 group-hover:opacity-100" />
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Log Out</span>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarFooter>
     </Sidebar>
   );
