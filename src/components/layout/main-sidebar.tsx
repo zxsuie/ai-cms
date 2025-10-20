@@ -51,11 +51,11 @@ export function MainSidebar() {
           </SidebarHeader>
           <SidebarMenu className="flex-1 p-2">
             {allMenuItems.slice(0, 4).map((item) => (
-                <Skeleton key={item.href} className="w-10 h-10 mb-2" />
+                <Skeleton key={item.href} className="w-full h-10 mb-2" />
             ))}
           </SidebarMenu>
           <SidebarFooter>
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-full" />
           </SidebarFooter>
       </Sidebar>
     );
@@ -68,7 +68,7 @@ export function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-center h-14">
+        <div className="flex items-center justify-center h-14 w-full">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary shrink-0">
             <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m-4 60a12 12 0 1 1-12 12a12 12 0 0 1 12-12m60 92h-52v52a12 12 0 0 1-24 0v-52H56a12 12 0 0 1 0-24h52V92a12 12 0 0 1 24 0v52h52a12 12 0 0 1 0 24"/>
           </svg>
