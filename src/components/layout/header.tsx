@@ -19,7 +19,7 @@ export function Header() {
   return (
     <header className="flex h-16 items-center border-b bg-card px-4 shrink-0 sm:px-6">
       <div className="flex-1">
-        <h1 className="text-xl font-headline font-semibold">{title}</h1>
+        {/* The sidebar trigger button used to be here */}
       </div>
       <div className="flex items-center gap-4">
         <div className="hidden sm:block w-40">
@@ -30,5 +30,3 @@ export function Header() {
     </header>
   );
 }
-
-    

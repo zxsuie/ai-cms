@@ -12,7 +12,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -164,5 +164,3 @@ export function MainSidebar() {
     </Sidebar>
   );
 }
-
-    
