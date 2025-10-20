@@ -16,10 +16,10 @@ type OverviewData = {
   fill: string;
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
-    const percentage = ((payload[0].value / (data.reduce((acc,d) => acc+d.value,0))) * 100).toFixed(1)
+const CustomTooltip = ({ active, payload, label, data }: any) => {
+  if (active && payload && payload.length && data) {
+    const totalVisits = data.reduce((acc: number, d: OverviewData) => acc + d.value, 0);
+    const percentage = totalVisits > 0 ? ((payload[0].value / totalVisits) * 100).toFixed(1) : 0;
     
     return (
       <div className="p-2 bg-background border rounded-md shadow-lg text-sm">
@@ -121,7 +121,7 @@ export function PatientsOverviewChart() {
           />
           <Tooltip 
             cursor={{ fill: 'hsl(var(--accent))' }}
-            content={<CustomTooltip />}
+            content={<CustomTooltip data={chartData} />}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={25} />
         </BarChart>
