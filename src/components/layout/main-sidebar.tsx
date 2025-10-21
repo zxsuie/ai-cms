@@ -7,14 +7,11 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
-  SidebarGroup,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText, LogOut, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, Boxes, BarChart3, CalendarDays, ScrollText } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { usePathname } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '../ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -25,15 +22,12 @@ const allMenuItems = [
   { href: '/inventory', label: 'Inventory', icon: Boxes, roles: ['admin', 'super_admin'] },
   { href: '/appointments', label: 'Appointments', icon: CalendarDays, roles: ['admin', 'super_admin', 'student', 'employee', 'staff'] },
   { href: '/reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'super_admin'] },
+  { href: '/logs', label: 'Logs', icon: ScrollText, roles: ['super_admin'] },
 ];
-
-const superAdminItems = [
-    { href: '/logs', label: 'Logs', icon: ScrollText, roles: ['super_admin'] },
-]
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const { user, loading, isSuperAdmin } = useUser();
+  const { user, loading } = useUser();
   const { isHovering } = useSidebar();
 
   if (loading) {
@@ -58,7 +52,7 @@ export function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-center h-14 w-full">
+        <div className="flex items-center justify-center h-14 w-full overflow-hidden">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-8 h-8 text-sidebar-primary shrink-0">
             <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m-4 60a12 12 0 1 1-12 12a12 12 0 0 1 12-12m60 92h-52v52a12 12 0 0 1-24 0v-52H56a12 12 0 0 1 0-24h52V92a12 12 0 0 1 24 0v52h52a12 12 0 0 1 0 24"/>
           </svg>
@@ -78,8 +72,8 @@ export function MainSidebar() {
               className={cn(pathname === item.href && "sidebar-active-item")}
               tooltip={{ children: item.label, side: 'right' }}
             >
-              <Link href={item.href} className={cn(!isHovering && "justify-center")}>
-                <item.icon className="opacity-70 group-hover:opacity-100" />
+              <Link href={item.href}>
+                <item.icon className="shrink-0" />
                 <span className={cn(
                     "transition-opacity duration-300 whitespace-nowrap",
                     isHovering ? "opacity-100" : "opacity-0"
@@ -88,27 +82,6 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
-         {isSuperAdmin && (
-             <SidebarGroup className="mt-4 pt-4 border-t border-sidebar-border">
-                 {superAdminItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                            asChild
-                            className={cn(pathname === item.href && "sidebar-active-item")}
-                            tooltip={{ children: item.label, side: 'right' }}
-                        >
-                            <Link href={item.href} className={cn(!isHovering && "justify-center")}>
-                                <item.icon className="opacity-70 group-hover:opacity-100" />
-                                <span className={cn(
-                                    "transition-opacity duration-300 whitespace-nowrap",
-                                    isHovering ? "opacity-100" : "opacity-0"
-                                )}>{item.label}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
-            </SidebarGroup>
-         )}
       </SidebarMenu>
     </Sidebar>
   );

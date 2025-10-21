@@ -8,6 +8,7 @@ import { UpcomingAppointments } from '@/components/appointments/upcoming-appoint
 import { PatientsOverviewChart } from '@/components/dashboard/patients-overview-chart';
 import { VisitsDataTable } from '@/components/dashboard/visits-data-table';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { LogVisitButton } from '@/components/dashboard/log-visit-button';
 
 export default function DashboardPage() {
   return (
@@ -83,6 +84,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <LogVisitButton />
     </div>
   );
 }

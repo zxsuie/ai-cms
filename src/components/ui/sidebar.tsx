@@ -255,6 +255,7 @@ const SidebarMenuButton = React.forwardRef<
           className={cn(
             "flex w-full items-center gap-3 overflow-hidden rounded-xl p-2 text-left text-sm outline-none ring-sidebar-ring transition-colors duration-300 ease-in-out",
             "text-white/60 hover:text-white hover:bg-sidebar-accent",
+            "h-12",
             isHovering ? "justify-start pl-4" : "justify-center",
             "[&>svg]:size-6 [&>svg]:shrink-0",
             className
