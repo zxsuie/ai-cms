@@ -33,18 +33,9 @@ const superAdminItems = [
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
   const { user, loading, isSuperAdmin } = useUser();
   const { isHovering } = useSidebar();
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    toast({ title: "Logged Out", description: "You have been successfully logged out." });
-    router.push('/login');
-    router.refresh();
-  };
-  
   if (loading) {
     return (
       <Sidebar>
@@ -122,20 +113,6 @@ export function MainSidebar() {
             </SidebarGroup>
          )}
       </SidebarMenu>
-      <SidebarFooter>
-        <SidebarMenuItem>
-            <SidebarMenuButton 
-                onClick={handleLogout}
-                tooltip={{ children: 'Log Out', side: 'right' }}
-            >
-                <LogOut className="opacity-70 group-hover:opacity-100" />
-                 <span className={cn(
-                    "transition-opacity duration-300 whitespace-nowrap",
-                    isHovering ? "opacity-100" : "opacity-0"
-                )}>Log Out</span>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarFooter>
     </Sidebar>
   );
 }
