@@ -78,7 +78,7 @@ export function MainSidebar() {
               className={cn(pathname === item.href && "sidebar-active-item")}
               tooltip={{ children: item.label, side: 'right' }}
             >
-              <Link href={item.href}>
+              <Link href={item.href} className={cn(!isHovering && "justify-center")}>
                 <item.icon className="opacity-70 group-hover:opacity-100" />
                 <span className={cn(
                     "transition-opacity duration-300 whitespace-nowrap",
@@ -97,7 +97,7 @@ export function MainSidebar() {
                             className={cn(pathname === item.href && "sidebar-active-item")}
                             tooltip={{ children: item.label, side: 'right' }}
                         >
-                            <Link href={item.href}>
+                            <Link href={item.href} className={cn(!isHovering && "justify-center")}>
                                 <item.icon className="opacity-70 group-hover:opacity-100" />
                                 <span className={cn(
                                     "transition-opacity duration-300 whitespace-nowrap",
