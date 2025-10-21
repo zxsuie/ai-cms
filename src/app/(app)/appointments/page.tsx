@@ -2,13 +2,13 @@
 'use client';
 
 import { Suspense } from "react";
-import { AppointmentDataTable } from "@/components/appointments/appointment-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScheduleAppointmentForm } from "@/components/appointments/schedule-appointment-form";
 import { UpcomingAppointments } from "@/components/appointments/upcoming-appointments";
 import { PastAppointments } from "@/components/appointments/past-appointments";
+import { AppointmentDataTable } from "@/components/appointments/appointment-data-table";
 
 function AdminAppointmentView() {
     return (
@@ -77,6 +77,7 @@ function UserAppointmentView() {
     );
 }
 
+
 export default function AppointmentsPage() {
   const { isAdmin, loading } = useUser();
 
@@ -90,10 +91,5 @@ export default function AppointmentsPage() {
     )
   }
 
-  if (isAdmin) {
-    return <AdminAppointmentView />;
-  }
-
-  return <UserAppointmentView />;
+  return isAdmin ? <AdminAppointmentView /> : <UserAppointmentView />;
 }
-
