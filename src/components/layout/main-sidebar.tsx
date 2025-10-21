@@ -47,9 +47,6 @@ export function MainSidebar() {
                 <Skeleton key={item.href} className="w-full h-10 mb-2" />
             ))}
           </SidebarMenu>
-          <SidebarFooter>
-            <Skeleton className="h-10 w-full" />
-          </SidebarFooter>
       </Sidebar>
     );
   }
