@@ -14,13 +14,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       <MainSidebar />
       <div
         className={cn(
-          'flex-1 flex flex-col transition-all duration-300 ease-in-out',
+          'flex-1 flex flex-col transition-all duration-300 ease-in-out min-h-screen',
           'md:ml-[80px]',
           isHovering && 'md:ml-[240px]'
         )}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>
