@@ -41,37 +41,40 @@ function UserAppointmentView() {
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Your Appointments</h1>
                 <p className="text-muted-foreground">Schedule and manage your appointments with the clinic.</p>
             </div>
-            <Card>
-                <CardHeader>
-                <CardTitle>Book an Appointment</CardTitle>
-                <CardDescription>Select a date and time to schedule your visit to the clinic.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                <ScheduleAppointmentForm />
-                </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Your Upcoming Appointments</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                            <UpcomingAppointments />
-                        </Suspense>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Your Past Appointments</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                            <PastAppointments />
-                        </Suspense>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                        <CardTitle>Book an Appointment</CardTitle>
+                        <CardDescription>Select a date and time to schedule your visit to the clinic.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <ScheduleAppointmentForm />
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="space-y-6">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Your Upcoming Appointments</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                                <UpcomingAppointments />
+                            </Suspense>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Your Past Appointments</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                                <PastAppointments />
+                            </Suspense>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );
