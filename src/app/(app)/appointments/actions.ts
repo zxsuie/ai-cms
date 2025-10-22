@@ -5,13 +5,14 @@ import type { z } from 'zod';
 import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
     const { studentName, studentYear, studentSection, reason, date, time, userId } = data;
     
-    const appointmentDate = format(date, 'yyyy-MM-dd');
+    // The 'date' comes from the client as an ISO string, so it must be parsed first.
+    const appointmentDate = format(parseISO(date as unknown as string), 'yyyy-MM-dd');
     const appointmentTime = time;
 
     // Check for overlapping appointments
