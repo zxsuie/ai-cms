@@ -16,16 +16,16 @@ type OverviewData = {
   fill: string;
 };
 
-const CustomTooltip = ({ active, payload, label, data }: any) => {
-  if (active && payload && payload.length && data) {
-    const totalVisits = data.reduce((acc: number, d: OverviewData) => acc + d.value, 0);
-    const percentage = totalVisits > 0 ? ((payload[0].value / totalVisits) * 100).toFixed(1) : 0;
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const totalVisits = payload.reduce((acc: number, entry: any) => acc + entry.payload.value, 0);
+    const percentage = totalVisits > 0 ? ((data.value / totalVisits) * 100).toFixed(1) : 0;
     
     return (
       <div className="p-2 bg-background border rounded-md shadow-lg text-sm">
         <p className="font-bold">{`${label}`}</p>
         <p>{`Visits: ${payload[0].value}`}</p>
-        <p>{`Share: ${percentage}%`}</p>
       </div>
     );
   }
@@ -39,7 +39,9 @@ export function PatientsOverviewChart() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const { theme: mode } = useTheme();
-  const theme = themes.find((t) => t.name === (mode === 'dark' ? 'dark' : 'light'));
+  
+  const theme = themes.find((t) => t.name === "light");
+  const currentTheme = mode === 'dark' ? themes.find(t => t.name === 'dark') : theme;
 
   const fetchOverview = React.useCallback(async () => {
     setIsLoading(true);
@@ -76,7 +78,8 @@ export function PatientsOverviewChart() {
     )
   }
 
-  if (!theme) return null;
+  if (!theme || !currentTheme) return null;
+  const themeColors = currentTheme.cssVars.light; // Same as other chart
 
   const chartData = data.filter(d => d.value > 0);
 
@@ -101,10 +104,10 @@ export function PatientsOverviewChart() {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={`hsl(${theme.cssVars.light.border})`} />
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={themeColors.border} />
           <XAxis 
             type="number" 
-            stroke={`hsl(${theme.cssVars.light["muted-foreground"]})`}
+            stroke={themeColors["muted-foreground"]}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -113,7 +116,7 @@ export function PatientsOverviewChart() {
           <YAxis 
             type="category" 
             dataKey="name" 
-            stroke={`hsl(${theme.cssVars.light["muted-foreground"]})`}
+            stroke={themeColors["muted-foreground"]}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -121,7 +124,11 @@ export function PatientsOverviewChart() {
           />
           <Tooltip 
             cursor={{ fill: 'hsl(var(--accent))' }}
-            content={<CustomTooltip data={chartData} />}
+            content={<CustomTooltip />}
+             contentStyle={{ 
+                backgroundColor: themeColors.background,
+                borderColor: themeColors.border,
+            }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={25} />
         </BarChart>

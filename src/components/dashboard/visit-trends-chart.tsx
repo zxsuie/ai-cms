@@ -6,11 +6,15 @@ import { useVisitsLast7Days } from "@/hooks/use-visits-last-7-days"
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import { themes } from "@/themes";
+import { Skeleton } from "../ui/skeleton";
 
 export function VisitTrendsChart() {
-    const { data } = useVisitsLast7Days();
+    const { data, loading } = useVisitsLast7Days();
     const { theme: mode } = useTheme();
-    const theme = themes.find((t) => t.name === (mode === "dark" ? "dark" : "light"));
+    
+    const theme = themes.find((t) => t.name === "light"); // Base theme for structure
+    const currentTheme = mode === 'dark' ? themes.find(t => t.name === 'dark') : theme;
+
 
     const chartData = useMemo(() => {
         return Object.entries(data).map(([day, count]) => ({
@@ -19,20 +23,24 @@ export function VisitTrendsChart() {
         }));
     }, [data]);
     
-    if (!theme) return null;
+    if (loading || !theme || !currentTheme) {
+        return <Skeleton className="h-[350px] w-full" />
+    }
+    
+    const themeColors = currentTheme.cssVars.light; // In our themes.ts, dark vars are also under a 'light' key which is confusing but how it is.
 
     return (
         <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData}>
             <XAxis
                 dataKey="name"
-                stroke={theme.cssVars.light["muted-foreground"]}
+                stroke={themeColors["muted-foreground"]}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
             />
             <YAxis
-                stroke={theme.cssVars.light["muted-foreground"]}
+                stroke={themeColors["muted-foreground"]}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -41,11 +49,11 @@ export function VisitTrendsChart() {
             <Tooltip 
                 cursor={false}
                 contentStyle={{ 
-                    backgroundColor: theme.cssVars.light.background,
-                    borderColor: theme.cssVars.light.border,
+                    backgroundColor: themeColors.background,
+                    borderColor: themeColors.border,
                 }}
             />
-            <Bar dataKey="total" fill={theme.cssVars.light.primary} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="total" fill={themeColors.primary} radius={[4, 4, 0, 0]} />
         </BarChart>
         </ResponsiveContainer>
     )
