@@ -9,38 +9,44 @@ import { themes } from "@/themes";
 import { Skeleton } from "../ui/skeleton";
 
 export function VisitTrendsChart() {
-    const { data, loading, isClient } = useVisitsLast7Days();
+    const { data, loading } = useVisitsLast7Days();
     const { theme: mode } = useTheme();
     
-    const theme = themes.find((t) => t.name === "light"); // Base theme for structure
-    const currentTheme = mode === 'dark' ? themes.find(t => t.name === 'dark') : theme;
-
+    const theme = useMemo(() => 
+        themes.find((t) => t.name === (mode === 'dark' ? 'dark' : 'light'))
+    , [mode]);
 
     const chartData = useMemo(() => {
+        if (!data) return [];
         return Object.entries(data).map(([day, count]) => ({
             name: day.substring(0, 3),
             total: count,
         }));
     }, [data]);
     
-    if (!isClient || loading || !theme || !currentTheme) {
+    if (loading || !theme) {
         return <Skeleton className="h-[350px] w-full" />
     }
     
-    const themeColors = mode === 'dark' ? currentTheme.cssVars.dark : currentTheme.cssVars.light;
+    const themeColors = mode === 'dark' ? theme.cssVars.dark : theme.cssVars.light;
+    const primaryColor = `hsl(${themeColors.primary})`;
+    const mutedForegroundColor = `hsl(${themeColors["muted-foreground"]})`;
+    const backgroundColor = `hsl(${themeColors.background})`;
+    const borderColor = `hsl(${themeColors.border})`;
+
 
     return (
         <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData}>
             <XAxis
                 dataKey="name"
-                stroke={themeColors["muted-foreground"]}
+                stroke={mutedForegroundColor}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
             />
             <YAxis
-                stroke={themeColors["muted-foreground"]}
+                stroke={mutedForegroundColor}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -49,11 +55,11 @@ export function VisitTrendsChart() {
             <Tooltip 
                 cursor={false}
                 contentStyle={{ 
-                    backgroundColor: themeColors.background,
-                    borderColor: themeColors.border,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
                 }}
             />
-            <Bar dataKey="total" fill={themeColors.primary} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="total" fill={primaryColor} radius={[4, 4, 0, 0]} />
         </BarChart>
         </ResponsiveContainer>
     )

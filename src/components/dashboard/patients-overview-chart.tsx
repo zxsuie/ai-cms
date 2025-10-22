@@ -19,8 +19,6 @@ type OverviewData = {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const totalVisits = payload.reduce((acc: number, entry: any) => acc + entry.payload.value, 0);
-    const percentage = totalVisits > 0 ? ((data.value / totalVisits) * 100).toFixed(1) : 0;
     
     return (
       <div className="p-2 bg-background border rounded-md shadow-lg text-sm">
@@ -40,8 +38,9 @@ export function PatientsOverviewChart() {
   const [error, setError] = React.useState<string | null>(null);
   const { theme: mode } = useTheme();
   
-  const theme = themes.find((t) => t.name === "light");
-  const currentTheme = mode === 'dark' ? themes.find(t => t.name === 'dark') : theme;
+  const theme = React.useMemo(() => 
+    themes.find((t) => t.name === (mode === 'dark' ? 'dark' : 'light'))
+  , [mode]);
 
   const fetchOverview = React.useCallback(async () => {
     setIsLoading(true);
@@ -64,7 +63,7 @@ export function PatientsOverviewChart() {
     fetchOverview();
   }, [fetchOverview]);
 
-  if (isLoading) {
+  if (isLoading || !theme) {
     return <Skeleton className="h-80 w-full" />;
   }
   
@@ -78,8 +77,12 @@ export function PatientsOverviewChart() {
     )
   }
 
-  if (!theme || !currentTheme) return null;
-  const themeColors = mode === 'dark' ? currentTheme.cssVars.dark : currentTheme.cssVars.light;
+  const themeColors = mode === 'dark' ? theme.cssVars.dark : theme.cssVars.light;
+  const mutedForegroundColor = `hsl(${themeColors["muted-foreground"]})`;
+  const borderColor = `hsl(${themeColors.border})`;
+  const backgroundColor = `hsl(${themeColors.background})`;
+  const accentColor = `hsl(${themeColors.accent})`;
+
 
   const chartData = data.filter(d => d.value > 0);
 
@@ -104,10 +107,10 @@ export function PatientsOverviewChart() {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={themeColors.border} />
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={borderColor} />
           <XAxis 
             type="number" 
-            stroke={themeColors["muted-foreground"]}
+            stroke={mutedForegroundColor}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -116,18 +119,18 @@ export function PatientsOverviewChart() {
           <YAxis 
             type="category" 
             dataKey="name" 
-            stroke={themeColors["muted-foreground"]}
+            stroke={mutedForegroundColor}
             fontSize={12}
             tickLine={false}
             axisLine={false}
             width={70}
           />
           <Tooltip 
-            cursor={{ fill: 'hsl(var(--accent))' }}
+            cursor={{ fill: accentColor, opacity: 0.5 }}
             content={<CustomTooltip />}
              contentStyle={{ 
-                backgroundColor: themeColors.background,
-                borderColor: themeColors.border,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
             }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={25} />
