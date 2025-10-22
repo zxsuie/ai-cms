@@ -5,20 +5,19 @@ import type { z } from 'zod';
 import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
-    const { date, ...restOfData } = data;
-    
-    // The 'date' comes from the client as a Date object, so it must be formatted.
-    const appointmentDate = format(date, 'yyyy-MM-dd');
-
+    // The 'date' from the form is a Date object. Format it for the database.
     const appointmentPayload = {
-      ...restOfData,
-      appointmentDate,
+      ...data,
+      appointmentDate: format(data.date, 'yyyy-MM-dd'),
+      appointmentTime: data.time,
     };
     
+    // The db.addAppointment function now handles conflict checking and insertion.
+    // We pass the entire validated data payload.
     const newAppointment = await db.addAppointment(appointmentPayload);
 
     await db.addActivityLog('appointment_scheduled', { 
