@@ -8,7 +8,6 @@ import { getPatientOverview } from '@/app/(app)/dashboard/actions';
 import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Terminal } from 'lucide-react';
-import { themes } from '@/themes';
 
 type OverviewData = {
   name: string;
@@ -37,10 +36,6 @@ export function PatientsOverviewChart() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const { theme: mode } = useTheme();
-  
-  const theme = React.useMemo(() => 
-    themes.find((t) => t.name === (mode === 'dark' ? 'dark' : 'light'))
-  , [mode]);
 
   const fetchOverview = React.useCallback(async () => {
     setIsLoading(true);
@@ -62,8 +57,30 @@ export function PatientsOverviewChart() {
   React.useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
+  
+  // Resolve theme to a non-undefined value. Default to 'dark' if system theme is not yet resolved.
+  const resolvedTheme = mode === "system" ? "dark" : mode || "dark";
 
-  if (isLoading || !theme) {
+  const [mutedForegroundColor, borderColor, backgroundColor, accentColor] = React.useMemo(() => {
+      if (typeof window === 'undefined') {
+        return ["#000000", "#eeeeee", "#ffffff", "#FFA500"];
+      }
+      const style = getComputedStyle(document.body);
+      const mutedForeground = style.getPropertyValue('--muted-foreground');
+      const border = style.getPropertyValue('--border');
+      const background = style.getPropertyValue('--background');
+      const accent = style.getPropertyValue('--accent');
+
+      return [
+        `hsl(${mutedForeground})`,
+        `hsl(${border})`,
+        `hsl(${background})`,
+        `hsl(${accent})`
+      ];
+  }, [resolvedTheme]);
+
+
+  if (isLoading) {
     return <Skeleton className="h-80 w-full" />;
   }
   
@@ -76,13 +93,6 @@ export function PatientsOverviewChart() {
         </Alert>
     )
   }
-
-  const themeColors = mode === 'dark' ? theme.cssVars.dark : theme.cssVars.light;
-  const mutedForegroundColor = `hsl(${themeColors["muted-foreground"]})`;
-  const borderColor = `hsl(${themeColors.border})`;
-  const backgroundColor = `hsl(${themeColors.background})`;
-  const accentColor = `hsl(${themeColors.accent})`;
-
 
   const chartData = data.filter(d => d.value > 0);
 
