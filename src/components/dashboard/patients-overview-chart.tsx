@@ -79,7 +79,7 @@ export function PatientsOverviewChart() {
   }
 
   if (!theme || !currentTheme) return null;
-  const themeColors = currentTheme.cssVars.light; // Same as other chart
+  const themeColors = mode === 'dark' ? currentTheme.cssVars.dark : currentTheme.cssVars.light;
 
   const chartData = data.filter(d => d.value > 0);
 

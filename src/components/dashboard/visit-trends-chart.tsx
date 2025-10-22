@@ -9,7 +9,7 @@ import { themes } from "@/themes";
 import { Skeleton } from "../ui/skeleton";
 
 export function VisitTrendsChart() {
-    const { data, loading } = useVisitsLast7Days();
+    const { data, loading, isClient } = useVisitsLast7Days();
     const { theme: mode } = useTheme();
     
     const theme = themes.find((t) => t.name === "light"); // Base theme for structure
@@ -23,11 +23,11 @@ export function VisitTrendsChart() {
         }));
     }, [data]);
     
-    if (loading || !theme || !currentTheme) {
+    if (!isClient || loading || !theme || !currentTheme) {
         return <Skeleton className="h-[350px] w-full" />
     }
     
-    const themeColors = currentTheme.cssVars.light; // In our themes.ts, dark vars are also under a 'light' key which is confusing but how it is.
+    const themeColors = mode === 'dark' ? currentTheme.cssVars.dark : currentTheme.cssVars.light;
 
     return (
         <ResponsiveContainer width="100%" height={350}>
