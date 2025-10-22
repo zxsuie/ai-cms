@@ -273,15 +273,32 @@ export const db = {
   },
 
   addAppointment: async (apptData: AppointmentInsert): Promise<Appointment> => {
+    // Check for existing appointment at the same time slot first
+    const { count, error: countError } = await supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('appointment_date', apptData.appointmentDate)
+      .eq('appointment_time', apptData.appointmentTime);
+
+    if (countError) {
+      console.error('Error checking for existing appointment:', countError);
+      throw countError;
+    }
+
+    if (count && count > 0) {
+      // Throw a specific error for slot conflict
+      throw new Error('SLOT_TAKEN');
+    }
+
+    // If no conflict, proceed with insertion
     const snakeCaseData = toSnakeCase(apptData);
-    // Ensure userId is correctly formatted if it exists. If it's an empty string, it should be null.
     if (!snakeCaseData.user_id || snakeCaseData.user_id.trim() === '') {
         snakeCaseData.user_id = null;
     }
-    const {data, error} = await supabase.from('appointments').insert(snakeCaseData).select().single();
-    if (error) {
-      console.error('Error adding appointment:', error);
-      throw error;
+    const { data, error: insertError } = await supabase.from('appointments').insert(snakeCaseData).select().single();
+    if (insertError) {
+      console.error('Error adding appointment:', insertError);
+      throw insertError;
     };
     return toCamelCase(data) as Appointment;
   },
