@@ -9,16 +9,28 @@ import { ScheduleAppointmentForm } from "@/components/appointments/schedule-appo
 import { UpcomingAppointments } from "@/components/appointments/upcoming-appointments";
 import { PastAppointments } from "@/components/appointments/past-appointments";
 import { AppointmentDataTable } from "@/components/appointments/appointment-data-table";
+import { AppointmentCalendar } from "@/components/appointments/appointment-calendar";
 
 function AdminAppointmentView() {
     return (
-        <div className="mx-auto w-full max-w-7xl space-y-6">
+        <div className="w-full max-w-7xl mx-auto space-y-6">
             <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Management</h1>
                 <p className="text-muted-foreground">
                 View, filter, and manage all scheduled appointments.
                 </p>
             </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Appointment Calendar</CardTitle>
+                    <CardDescription>A calendar view of all scheduled appointments.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                        <AppointmentCalendar />
+                    </Suspense>
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                     <CardTitle>All Appointments</CardTitle>
@@ -36,7 +48,7 @@ function AdminAppointmentView() {
 
 function UserAppointmentView() {
     return (
-        <div className="mx-auto w-full max-w-7xl space-y-6">
+        <div className="w-full max-w-7xl mx-auto space-y-6">
              <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Your Appointments</h1>
                 <p className="text-muted-foreground">Schedule and manage your appointments with the clinic.</p>

@@ -1,8 +1,9 @@
+
 import { ReportGenerator } from "@/components/reports/report-generator";
 
 export default function ReportsPage() {
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div className="w-full max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-headline font-bold tracking-tight">AI Report Generator</h1>
         <p className="text-muted-foreground">
