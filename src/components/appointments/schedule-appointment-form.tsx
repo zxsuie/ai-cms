@@ -90,10 +90,12 @@ export function ScheduleAppointmentForm() {
 
   // Populate form with user data if available
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !isAdmin) {
       form.setValue('userId', user.id || '');
       form.setValue('studentName', user.fullName || '');
       
+      // For non-admins, their profile info is already linked via userId.
+      // We can pre-fill these for their reference but they are optional for submission.
       if (user.role === 'student') {
         form.setValue('studentYear', user.course || '');
         form.setValue('studentSection', user.studentSection || '');
@@ -102,7 +104,7 @@ export function ScheduleAppointmentForm() {
         form.setValue('studentSection', user.jobTitle || '');
       }
     }
-  }, [user, loading, form]);
+  }, [user, loading, form, isAdmin]);
 
 
   const selectedDate = form.watch('date');
@@ -183,56 +185,46 @@ export function ScheduleAppointmentForm() {
             </FormItem>
           )}
         />
-        {isAdmin ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                    control={form.control}
-                    name="studentName"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Student/Employee Name</FormLabel>
-                        <FormControl>
-                        <Input placeholder="e.g. Jane Smith" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="studentYear"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Course / Department</FormLabel>
-                         <Input placeholder="e.g. BSIT or HR Department" {...field} />
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-            </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
                 control={form.control}
-                name="studentSection"
+                name="studentName"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Section / Job Title</FormLabel>
+                    <FormLabel>Student/Employee Name</FormLabel>
                     <FormControl>
-                    <Input placeholder="e.g. BSCS-2A or Professor" {...field} />
+                    <Input placeholder="e.g. Jane Smith" {...field} disabled={!isAdmin} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
                 )}
             />
-          </>
-        ) : (
-            // For non-admin users, these fields are hidden and pre-filled
-            <>
-                <input type="hidden" {...form.register('studentName')} />
-                <input type="hidden" {...form.register('studentYear')} />
-                <input type="hidden" {...form.register('studentSection')} />
-            </>
-        )}
+            <FormField
+                control={form.control}
+                name="studentYear"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Course / Department</FormLabel>
+                      <Input placeholder="e.g. BSIT or HR Department" {...field} disabled={!isAdmin} />
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+        </div>
+        <FormField
+            control={form.control}
+            name="studentSection"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>Section / Job Title</FormLabel>
+                <FormControl>
+                <Input placeholder="e.g. BSCS-2A or Professor" {...field} disabled={!isAdmin}/>
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+        />
 
         <FormField
           control={form.control}

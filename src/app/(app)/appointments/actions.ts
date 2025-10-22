@@ -5,21 +5,22 @@ import type { z } from 'zod';
 import { db } from '@/lib/db';
 import type { scheduleAppointmentSchema } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { formatInTimeZone } from 'date-fns-tz';
+import { format } from 'date-fns';
 
 export async function scheduleAppointment(data: z.infer<typeof scheduleAppointmentSchema>) {
   try {
     const { studentName, studentYear, studentSection, reason, date, time, userId } = data;
     
-    // Format the date correctly for the database, ensuring it's not affected by timezone shifts on the server.
-    const appointmentDate = formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
+    // Format the date to a simple 'yyyy-MM-dd' string for reliable comparisons and storage.
+    const appointmentDate = format(date, 'yyyy-MM-dd');
     const appointmentTime = time;
 
     // Check for overlapping appointments
     const existingAppointments = await db.getAppointments();
     
     const conflict = existingAppointments.find(appt => {
-        return appt.appointmentDate === appointmentDate && appt.appointmentTime === appointmentTime;
+        // Compare dates and times as simple strings.
+        return appt.appointmentDate === appointmentDate && appt.appointmentTime.startsWith(appointmentTime);
     });
 
     if (conflict) {
