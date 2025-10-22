@@ -95,11 +95,11 @@ export function ScheduleAppointmentForm() {
       form.setValue('studentName', user.fullName || '');
       
       if (user.role === 'student') {
-        form.setValue('studentYear', user.course || 'N/A');
-        form.setValue('studentSection', user.studentSection || 'N/A');
+        form.setValue('studentYear', user.course || '');
+        form.setValue('studentSection', user.studentSection || '');
       } else if (user.role === 'employee' || user.role === 'staff') {
-        form.setValue('studentYear', user.department || 'N/A');
-        form.setValue('studentSection', user.jobTitle || 'N/A');
+        form.setValue('studentYear', user.department || '');
+        form.setValue('studentSection', user.jobTitle || '');
       }
     }
   }, [user, loading, form]);
