@@ -19,6 +19,14 @@ export function useVisitsLast7Days() {
   const [data, setData] = useState<DailyVisitData>({});
   const [symptomCounts, setSymptomCounts] = useState<SymptomCountData>({});
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  // This ensures that any data fetching or logic that depends on client-specific
+  // environment (like new Date()) only runs after the component has mounted.
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const fetchVisits = useCallback(async () => {
     setLoading(true);
@@ -66,6 +74,11 @@ export function useVisitsLast7Days() {
   }, []);
 
   useEffect(() => {
+    // Only run the fetching logic on the client.
+    if (!isClient) {
+      return;
+    }
+    
     fetchVisits();
 
     const channel = supabase
@@ -82,7 +95,7 @@ export function useVisitsLast7Days() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchVisits]);
+  }, [fetchVisits, isClient]);
 
   return { data, symptomCounts, loading };
 }
