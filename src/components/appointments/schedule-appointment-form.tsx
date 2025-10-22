@@ -94,8 +94,7 @@ export function ScheduleAppointmentForm() {
       form.setValue('userId', user.id || '');
       form.setValue('studentName', user.fullName || '');
       
-      // For non-admins, their profile info is already linked via userId.
-      // We can pre-fill these for their reference but they are optional for submission.
+      // Pre-fill required fields based on the user's role to pass validation
       if (user.role === 'student') {
         form.setValue('studentYear', user.course || '');
         form.setValue('studentSection', user.studentSection || '');
