@@ -12,27 +12,23 @@ export default function InventoryPage() {
         <h1 className="text-3xl font-headline font-bold tracking-tight">Medicine Inventory</h1>
         <p className="text-muted-foreground">Track and manage medicine stock levels.</p>
       </div>
-      <div className="space-y-6">
-        <Card>
-            <CardHeader>
-            <CardTitle>Add New Medicine</CardTitle>
-            <CardDescription>Add a new item to the inventory.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <AddMedicineForm />
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-            <CardTitle>Stock Overview</CardTitle>
-            <CardDescription>View current stock, dispense medicine, and request refills.</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-                <MedicineList />
-            </Suspense>
-            </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
+             <AddMedicineForm />
+        </div>
+        <div className="md:col-span-2">
+            <Card>
+                <CardHeader>
+                <CardTitle>Stock Overview</CardTitle>
+                <CardDescription>View current stock, dispense medicine, and request refills.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                    <MedicineList />
+                </Suspense>
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );
