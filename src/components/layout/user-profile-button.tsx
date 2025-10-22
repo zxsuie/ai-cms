@@ -4,17 +4,19 @@
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Monitor, Moon, Sun } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export function UserProfileButton() {
     const { user, loading } = useUser();
     const { toast } = useToast();
     const router = useRouter();
+    const { setTheme } = useTheme();
 
     const handleLogout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
@@ -72,6 +74,32 @@ export function UserProfileButton() {
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Edit Profile</span>
                 </DropdownMenuItem>
+                <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                        <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        <span>Theme</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                        <DropdownMenuItem onClick={() => setTheme("light")}>
+                            <Sun className="mr-2 h-4 w-4" />
+                            <span>Light</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("dark")}>
+                            <Moon className="mr-2 h-4 w-4" />
+                            <span>Dark</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("system")}>
+                            <Monitor className="mr-2 h-4 w-4" />
+                            <span>System</span>
+                        </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                </DropdownMenuSub>
+
+                <DropdownMenuSeparator />
+
                 <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log Out</span>
