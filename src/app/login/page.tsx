@@ -40,6 +40,17 @@ function GoogleButton() {
 
 export default function LoginPage() {
   const [errorMessage, dispatch] = useActionState(loginWithPassword, undefined);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (errorMessage) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: errorMessage,
+      });
+    }
+  }, [errorMessage, toast]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -55,13 +66,6 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {errorMessage && (
-                <Alert variant="destructive">
-                  <Terminal className="h-4 w-4" />
-                  <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
-              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
