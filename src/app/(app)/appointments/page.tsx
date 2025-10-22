@@ -13,7 +13,7 @@ import { AppointmentCalendar } from "@/components/appointments/appointment-calen
 
 function AdminAppointmentView() {
     return (
-        <div className="w-full max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
             <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Management</h1>
                 <p className="text-muted-foreground">
@@ -48,7 +48,7 @@ function AdminAppointmentView() {
 
 function UserAppointmentView() {
     return (
-        <div className="w-full max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
              <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Your Appointments</h1>
                 <p className="text-muted-foreground">Schedule and manage your appointments with the clinic.</p>
