@@ -11,19 +11,17 @@ export async function scheduleAppointment(data: z.infer<typeof scheduleAppointme
   try {
     const { studentName, studentYear, studentSection, reason, date, time, userId } = data;
     
-    // Format the date to a simple 'yyyy-MM-dd' string for reliable comparisons and storage.
     const appointmentDate = format(date, 'yyyy-MM-dd');
     const appointmentTime = time;
 
     // Check for overlapping appointments
     const existingAppointments = await db.getAppointments();
     
-    const conflict = existingAppointments.find(appt => {
-        // Compare dates and times as simple strings.
-        return appt.appointmentDate === appointmentDate && appt.appointmentTime.startsWith(appointmentTime);
-    });
+    const isSlotTaken = existingAppointments.some(
+        appt => appt.appointmentDate === appointmentDate && appt.appointmentTime === appointmentTime
+    );
 
-    if (conflict) {
+    if (isSlotTaken) {
         return { success: false, message: 'This time slot is no longer available. Please select another time.' };
     }
 
