@@ -12,7 +12,7 @@ import { AppointmentDataTable } from "@/components/appointments/appointment-data
 
 function AdminAppointmentView() {
     return (
-        <div className="space-y-6">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
             <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Appointment Management</h1>
                 <p className="text-muted-foreground">
@@ -36,7 +36,7 @@ function AdminAppointmentView() {
 
 function UserAppointmentView() {
     return (
-        <div className="space-y-6">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
              <div>
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Your Appointments</h1>
                 <p className="text-muted-foreground">Schedule and manage your appointments with the clinic.</p>

@@ -6,7 +6,7 @@ import { AddMedicineForm } from '@/components/inventory/add-medicine-form';
 
 export default function InventoryPage() {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6">
        <div>
         <h1 className="text-3xl font-headline font-bold tracking-tight">Medicine Inventory</h1>
         <p className="text-muted-foreground">Track and manage medicine stock levels.</p>
