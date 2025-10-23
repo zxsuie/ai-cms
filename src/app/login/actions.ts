@@ -95,12 +95,12 @@ export async function loginWithPassword(
 
 
 export async function signInWithGoogle() {
-    const redirectTo = `https://6000-firebase-studio-1758098726328.cluster-va5f6x3wzzh4stde63ddr3qgge.cloudworkstations.dev/api/auth/callback`;
-    
+    // We let Supabase know where to redirect the user after they have signed in.
+    // This is handled by the `callback` route.
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: redirectTo,
+            redirectTo: '/api/auth/callback',
             queryParams: {
                 access_type: 'offline',
                 prompt: 'consent',
